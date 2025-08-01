@@ -7,10 +7,10 @@ if(NOT WIN32)
 endif()
 
 list(APPEND LIBRARIES ${VILLASNODE_LIBRARIES})
+list(APPEND LIBRARIES ${VILLASCOMMON_LIBRARIES})
+list(APPEND LIBRARIES ${VILLASFPGA_LIBRARIES})
 list(APPEND LIBRARIES "jansson")
 list(APPEND LIBRARIES "uuid")
-list(APPEND LIBRARIES "villas-common")
-list(APPEND LIBRARIES "villas-fpga")
 list(APPEND LIBRARIES "xil")
 list(APPEND INCLUDE_DIRS ${VILLASNODE_INCLUDE_DIRS})
 
@@ -21,6 +21,7 @@ set(DPSIM_VILLAS_EXAMPLE_SOURCES
 	FpgaCosim3PhInfiniteBus.cpp
 	FpgaCosimulation.cpp
 	SharedMemExample.cpp
+	cosim-9bus-4order.cpp
 	# ShmemExample.cpp
 	# ShmemDistributedReference.cpp
 	# ShmemDistributedDirect.cpp

@@ -140,7 +140,7 @@ void EMT::Ph3::CurrentSource::mnaCompAddPreStepDependencies(
     AttributeBase::List &modifiedAttributes) {
   attributeDependencies.push_back(mCurrentRef);
   modifiedAttributes.push_back(mRightVector);
-  modifiedAttributes.push_back(mIntfVoltage);
+  modifiedAttributes.push_back(mIntfCurrent); // Is this correct?
 }
 
 void EMT::Ph3::CurrentSource::mnaCompPreStep(Real time, Int timeStepCount) {
@@ -154,6 +154,7 @@ void EMT::Ph3::CurrentSource::mnaCompAddPostStepDependencies(
     AttributeBase::List &modifiedAttributes,
     Attribute<Matrix>::Ptr &leftVector) {
   attributeDependencies.push_back(leftVector);
+  attributeDependencies.push_back(mCurrentRef);
   modifiedAttributes.push_back(mIntfVoltage);
 };
 
