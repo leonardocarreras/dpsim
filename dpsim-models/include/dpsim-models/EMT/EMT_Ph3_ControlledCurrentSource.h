@@ -25,7 +25,7 @@ class ControlledCurrentSource : public MNASimPowerComp<Real>,
                                 public SharedFactory<ControlledCurrentSource> {
 protected:
   // Updates current according to reference phasor and frequency
-  void updateCurrent(Real time);
+  void updateCurrent();
 
 public:
   const Attribute<Matrix>::Ptr mCurrentRef;

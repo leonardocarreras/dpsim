@@ -606,12 +606,17 @@ SystemTopology buildTopology(CommandLineArgs &args,
   systemEMT.initWithPowerflow(systemPF, Domain::EMT);
 
   auto cs = EMT::Ph3::ControlledCurrentSource::make("cs");
-  cs->setParameters(Matrix{{0.0}, {0.0}, {0.0}});
+  auto rcs = EMT::Ph3::Resistor::make("Rcs");
+  rcs->setParameters(Matrix{{1e8, 0, 0}, {0, 1e8, 0}, {0, 0, 1e8}});
+  //cs->setParameters(Matrix{{0.0}, {0.0}, {0.0}});
 
   cs->connect({n6EMT, SimNode<Real>::GND});
-  cs->initializeFromNodesAndTerminals();
+  rcs->connect({n6EMT, SimNode<Real>::GND});
+  cs->initializeFromNodesAndTerminals(ninebus.nomFreq);
+  rcs->initializeFromNodesAndTerminals(ninebus.nomFreq);
 
   systemEMT.addComponent(cs);
+  systemEMT.addComponent(rcs);
 
   // auto seqFromRTDSAttribute = CPS::AttributeStatic<Int>::make(0);
   // auto seqFromDPsimAttribute = CPS::AttributeStatic<Int>::make(0);
@@ -720,15 +725,15 @@ int main(int argc, char *argv[]) {
   sim.addInterface(intfFpga);
   sim.setDomain(Domain::EMT);
   sim.doSystemMatrixRecomputation(true);
-  sim.setLogStepTimes(false);
-
+  sim.setLogStepTimes(true);
+  sim.checkForOverruns(args.name + "_overruns");
   if (log) {
     sim.addLogger(logger);
   }
   sim.run();
 
+  sim.logStepTimes(args.name + "_step_times");
   CPS::Logger::get("cosim-9bus-4order")->info("Simulation finished.");
-  sim.logStepTimes("cosim-9bus-4order");
 
   // std::ofstream of("task_dependencies.svg");
   // sim.dependencyGraph().render(of);

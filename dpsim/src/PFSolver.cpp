@@ -482,5 +482,18 @@ void PFSolver::SolveTask::execute(Real time, Int timeStepCount) {
 }
 
 Task::List PFSolver::getTasks() {
-  return Task::List{std::make_shared<SolveTask>(*this)};
+  Task::List l;
+
+  for (auto comp : mSystem.mComponents) {
+    auto sComp = std::dynamic_pointer_cast<SimSignalComp>(comp);
+    if (sComp) {
+      for (auto task : sComp->getTasks()) {
+        l.push_back(task);
+      }
+    }
+  }
+
+  l.push_back(std::make_shared<SolveTask>(*this));
+
+  return l;
 }
