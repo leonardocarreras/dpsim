@@ -141,13 +141,13 @@ SystemTopology buildTopology(CommandLineArgs &args,
 
   // Components
   auto vs = Ph3::ControlledVoltageSource::make("vs");
-  auto voltageRef = Matrix({{230e3}, {230e3}, {230e3}});
+  auto voltageRef = CPS::Math::singlePhaseParameterToThreePhase(230e3);
   vs->setParameters(voltageRef);
 
   auto load = Ph3::RXLoad::make("load");
-  auto active = Matrix({{125e6, 0, 0}, {0, 125e6, 0}, {0, 0, 125e6}});
+  auto active = CPS::Math::singlePhaseParameterToThreePhase(125e6);
   // auto reactive = Matrix::Zero(3, 3);
-  auto reactive = Matrix({{50e6, 0, 0}, {0, 50e6, 0}, {0, 0, 50e6}});
+  auto reactive = CPS::Math::singlePhaseParameterToThreePhase(50e6);
   load->setParameters(active, reactive, 230e3, true);
 
   // Topology

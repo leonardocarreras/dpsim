@@ -135,16 +135,16 @@ hilTopology(CommandLineArgs &args, std::shared_ptr<Interface> intf,
   sys.initWithPowerflow(systemPF, CPS::Domain::EMT);
 
   sys.component<CPS::EMT::Ph3::RXLoad>("LOAD5")->setParameters(
-      Matrix({{125e6, 0, 0}, {0, 125e6, 0}, {0, 0, 125e6}}),
-      Matrix({{90e6, 0, 0}, {0, 90e6, 0}, {0, 0, 90e6}}), 230e3, true);
+      CPS::Math::singlePhaseParameterToThreePhase(125e6),
+      CPS::Math::singlePhaseParameterToThreePhase(90e6),230e3, true);
 
   sys.component<CPS::EMT::Ph3::RXLoad>("LOAD8")->setParameters(
-      Matrix({{100e6, 0, 0}, {0, 100e6, 0}, {0, 0, 100e6}}),
-      Matrix({{30e6, 0, 0}, {0, 30e6, 0}, {0, 0, 30e6}}), 230e3, true);
+      CPS::Math::singlePhaseParameterToThreePhase(100e6),
+      CPS::Math::singlePhaseParameterToThreePhase(30e6), 230e3, true);
 
   sys.component<CPS::EMT::Ph3::RXLoad>("LOAD6")->setParameters(
-      Matrix({{90e6, 0, 0}, {0, 90e6, 0}, {0, 0, 90e6}}),
-      Matrix({{30e6, 0, 0}, {0, 30e6, 0}, {0, 0, 30e6}}), 230e3, true);
+      CPS::Math::singlePhaseParameterToThreePhase(90e6),
+      CPS::Math::singlePhaseParameterToThreePhase(30e6), 230e3, true);
 
   auto gen1 = sys.component<CPS::EMT::Ph3::SynchronGeneratorVBR>("GEN1");
   gen1->addGovernor(govKundur.Ta_t, govKundur.Tb, govKundur.Tc, govKundur.Fa,
