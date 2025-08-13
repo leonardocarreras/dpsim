@@ -89,6 +89,9 @@ set(CIRCUIT_SOURCES
 	Circuits/DP_SynGenTrStab_3Bus_SteadyState.cpp
 	Circuits/DP_SynGenTrStab_3Bus_Fault.cpp
 	Circuits/SP_SynGenTrStab_3Bus_Fault.cpp
+
+	# 9Bus System
+	Circuits/EMT_9bus_4order.cpp
 )
 
 if(WITH_JSON)

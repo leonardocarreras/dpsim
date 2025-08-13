@@ -125,7 +125,7 @@ struct Transformer {
 struct ScenarioConfig {
   //-----------Network-----------//
   Real Vnom = 230e3;
-  Real nomFreq = 60;
+  Real nomFreq = 50;
   Real nomOmega = nomFreq * 2 * PI;
   Real baseMVA = 100e6;
   Real baseZ = Vnom * Vnom / baseMVA;
