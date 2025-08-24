@@ -21,6 +21,7 @@ list(APPEND MODELS_SOURCES
 
 	DP/DP_Ph1_Capacitor.cpp
 	DP/DP_Ph1_CurrentSource.cpp
+	DP/DP_Ph1_ControlledCurrentSource.cpp
 	DP/DP_Ph1_Inductor.cpp
 	DP/DP_Ph1_PiLine.cpp
 	DP/DP_Ph1_RxLine.cpp
@@ -158,7 +159,7 @@ list(APPEND MODELS_SOURCES
 
 if(WITH_CIM)
 	list(APPEND MODELS_SOURCES CIM/Reader.cpp)
-	list(APPEND MODELS_LIBRARIES libcimpp)
+	list(APPEND MODELS_LIBRARIES CIMPP::cimpp)
 endif()
 
 if(WITH_GRAPHVIZ)

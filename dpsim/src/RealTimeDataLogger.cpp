@@ -76,15 +76,22 @@ void RealTimeDataLogger::log(Real time, Int timeStepCount) {
   mAttributeData[mCurrentRow][0] = time;
   mCurrentAttribute = 1;
 
-  for (auto it : mAttributes) {
+  for (auto &it : mAttributes) {
+    auto base = it.second.getPtr(); // std::shared_ptr<CPS::AttributeBase>
+
     if (it.second->getType() == typeid(Real)) {
+      auto attr = std::dynamic_pointer_cast<CPS::Attribute<Real>>(base);
+      if (!attr) { /* handle error or skip */ continue; }
+      mAttributeData[mCurrentRow][mCurrentAttribute++] = /* either */
+        //*attr;             // if Attribute<Real> defines operator* -> Real&
+        attr->get();         // if there is a get() that returns Real
+    }
+    else if (it.second->getType() == typeid(Int)) {
+      auto attr = std::dynamic_pointer_cast<CPS::Attribute<Int>>(base);
+      if (!attr) { /* handle error or skip */ continue; }
       mAttributeData[mCurrentRow][mCurrentAttribute++] =
-          **std::dynamic_pointer_cast<std::shared_ptr<CPS::Attribute<Real>>>(
-              it.second.getPtr());
-    } else if (it.second->getType() == typeid(Int)) {
-      mAttributeData[mCurrentRow][mCurrentAttribute++] =
-          **std::dynamic_pointer_cast<std::shared_ptr<CPS::Attribute<Int>>>(
-              it.second.getPtr());
+        // *attr; or
+        attr->get();
     }
   }
 }

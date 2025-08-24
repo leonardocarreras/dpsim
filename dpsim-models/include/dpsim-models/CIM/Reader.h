@@ -52,6 +52,8 @@ class ConductingEquipment;
 #include <CIMNamespaces.hpp>
 #endif
 
+#include "CIMFormatter.h"
+
 namespace CPS {
 namespace CIM {
 class InvalidTopology {};

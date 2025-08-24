@@ -11,7 +11,7 @@ CPS::CIM::Examples::NineBus::ScenarioConfig ninebus;
 SystemTopology buildTopology(CommandLineArgs &args,
                              std::shared_ptr<DataLoggerInterface> logger) {
 
-  String simName = "EMT-9bus-4order";
+  String simName = "DP-9bus-4order";
   // ----- POWER FLOW FOR INITIALIZATION -----
   String simNamePF = simName + "_PF";
   CPS::Logger::setLogDir("logs/" + simNamePF);
@@ -215,25 +215,26 @@ SystemTopology buildTopology(CommandLineArgs &args,
 
   // ----- DYNAMIC SIMULATION -----
 
-  String simNameEMT = simName + "_EMT";
-  CPS::Logger::setLogDir("logs/" + simNameEMT);
+  String simNameDP = simName + "_DP";
+  CPS::Logger::setLogDir("logs/" + simNameDP);
 
   // Nodes
-  auto n1EMT = SimNode<Real>::make("BUS1", PhaseType::ABC);
-  auto n2EMT = SimNode<Real>::make("BUS2", PhaseType::ABC);
-  auto n3EMT = SimNode<Real>::make("BUS3", PhaseType::ABC);
-  auto n4EMT = SimNode<Real>::make("BUS4", PhaseType::ABC);
-  auto n5EMT = SimNode<Real>::make("BUS5", PhaseType::ABC);
-  auto n6EMT = SimNode<Real>::make("BUS6", PhaseType::ABC);
-  auto n7EMT = SimNode<Real>::make("BUS7", PhaseType::ABC);
-  auto n8EMT = SimNode<Real>::make("BUS8", PhaseType::ABC);
-  auto n9EMT = SimNode<Real>::make("BUS9", PhaseType::ABC);
+  auto n1DP = SimNode<Complex>::make("BUS1", PhaseType::Single);
+  auto n2DP = SimNode<Complex>::make("BUS2", PhaseType::Single);
+  auto n3DP = SimNode<Complex>::make("BUS3", PhaseType::Single);
+  auto n4DP = SimNode<Complex>::make("BUS4", PhaseType::Single);
+  auto n5DP = SimNode<Complex>::make("BUS5", PhaseType::Single);
+  auto n6DP = SimNode<Complex>::make("BUS6", PhaseType::Single);
+  auto n7DP = SimNode<Complex>::make("BUS7", PhaseType::Single);
+  auto n8DP = SimNode<Complex>::make("BUS8", PhaseType::Single);
+  auto n9DP = SimNode<Complex>::make("BUS9", PhaseType::Single);
+
 
   // Generator 1 Initialization
-  auto gen1EMT = EMT::Ph3::SynchronGenerator4OrderVBR::make(
+  auto gen1DP = DP::Ph1::SynchronGenerator4OrderVBR::make(
       ninebus.gen1.Name, CPS::Logger::Level::off);
 
-  gen1EMT->setOperationalParametersPerUnit(
+  gen1DP->setOperationalParametersPerUnit(
       ninebus.gen1.RatedPower,   // nomPower [VA]
       ninebus.gen1.RatedVoltage, // nomVolt [V]
       ninebus.nomFreq,           // nomFreq [Hz]
@@ -242,7 +243,7 @@ SystemTopology buildTopology(CommandLineArgs &args,
       ninebus.gen1.TqoPrime);
 
   // Add Exciter for Generator 1
-  gen1EMT->addExciter(
+  gen1DP->addExciter(
       ninebus.exc1.TA, // Ta: Voltage regulator time constant
       ninebus.exc1.KA, // Ka: Voltage regulator gain
       ninebus.exc1.TE, // Te: Exciter time constant
@@ -273,21 +274,22 @@ SystemTopology buildTopology(CommandLineArgs &args,
       1.0 // initElecPower_G1/ninebus.gen1.RatedPower   // OmRef: Speed reference
   );
 
-  gen1EMT->addGovernor(turbineGovernor1);
+  gen1DP->addGovernor(turbineGovernor1);
 
   // Generator 2 Initialization
-  auto gen2EMT = EMT::Ph3::SynchronGenerator4OrderVBR::make(
+  auto gen2DP = DP::Ph1::SynchronGenerator4OrderVBR::make(
       ninebus.gen2.Name, CPS::Logger::Level::off);
 
-  gen2EMT->setOperationalParametersPerUnit(
+  gen2DP->setOperationalParametersPerUnit(
       ninebus.gen2.RatedPower,   // nomPower [VA]
       ninebus.gen2.RatedVoltage, // nomVolt [V]
       ninebus.nomFreq,           // nomFreq [Hz]
       ninebus.gen2.H, ninebus.gen2.Xd, ninebus.gen2.Xq, ninebus.gen2.Xa,
       ninebus.gen2.XdPrime, ninebus.gen2.XqPrime, ninebus.gen2.TdoPrime,
       ninebus.gen2.TqoPrime);
+
   // Add Exciter for Generator 2
-  gen2EMT->addExciter(
+  gen2DP->addExciter(
       ninebus.exc2.TA, // Ta: Voltage regulator time constant
       ninebus.exc2.KA, // Ka: Voltage regulator gain
       ninebus.exc2.TE, // Te: Exciter time constant
@@ -318,13 +320,13 @@ SystemTopology buildTopology(CommandLineArgs &args,
       1.0 //initElecPower_G2/ninebus.gen2.RatedPower   // OmRef: Speed reference
   );
 
-  gen2EMT->addGovernor(turbineGovernor2);
+  gen2DP->addGovernor(turbineGovernor2);
 
   // Generator 3 Initialization
-  auto gen3EMT = EMT::Ph3::SynchronGenerator4OrderVBR::make(
+  auto gen3DP = DP::Ph1::SynchronGenerator4OrderVBR::make(
       ninebus.gen3.Name, CPS::Logger::Level::off);
 
-  gen3EMT->setOperationalParametersPerUnit(
+  gen3DP->setOperationalParametersPerUnit(
       ninebus.gen3.RatedPower,   // nomPower [VA]
       ninebus.gen3.RatedVoltage, // nomVolt [V]
       ninebus.nomFreq,           // nomFreq [Hz]
@@ -333,7 +335,7 @@ SystemTopology buildTopology(CommandLineArgs &args,
       ninebus.gen3.TqoPrime);
 
   // Add Exciter for Generator 1
-  gen3EMT->addExciter(
+  gen3DP->addExciter(
       ninebus.exc3.TA, // Ta: Voltage regulator time constant
       ninebus.exc3.KA, // Ka: Voltage regulator gain
       ninebus.exc3.TE, // Te: Exciter time constant
@@ -362,166 +364,166 @@ SystemTopology buildTopology(CommandLineArgs &args,
       1.0 //initElecPower_G3/ninebus.gen3.RatedPower   // OmRef: Speed reference
   );
 
-  gen3EMT->addGovernor(turbineGovernor3);
+  gen3DP->addGovernor(turbineGovernor3);
 
   // Loads
-  auto load5EMT =
-      EMT::Ph3::RXLoad::make(ninebus.load5.Name, CPS::Logger::Level::off);
-  load5EMT->setParameters(
-      Math::singlePhasePowerToThreePhase(ninebus.load5.RealPower),
-      Math::singlePhasePowerToThreePhase(ninebus.load5.ReactivePower),
+  auto load5DP =
+      DP::Ph1::RXLoad::make(ninebus.load5.Name, CPS::Logger::Level::off);
+  load5DP->setParameters(
+      ninebus.load5.RealPower,
+      ninebus.load5.ReactivePower,
       ninebus.load5.BaseVoltage);
 
-  auto load6EMT =
-      EMT::Ph3::RXLoad::make(ninebus.load6.Name, CPS::Logger::Level::off);
-  load6EMT->setParameters(
-      Math::singlePhasePowerToThreePhase(ninebus.load6.RealPower),
-      Math::singlePhasePowerToThreePhase(ninebus.load6.ReactivePower),
+  auto load6DP =
+      DP::Ph1::RXLoad::make(ninebus.load6.Name, CPS::Logger::Level::off);
+  load6DP->setParameters(
+      ninebus.load6.RealPower,
+      ninebus.load6.ReactivePower,
       ninebus.load6.BaseVoltage);
 
-  auto load8EMT =
-      EMT::Ph3::RXLoad::make(ninebus.load8.Name, CPS::Logger::Level::off);
-  load8EMT->setParameters(
-      Math::singlePhasePowerToThreePhase(ninebus.load8.RealPower),
-      Math::singlePhasePowerToThreePhase(ninebus.load8.ReactivePower),
+  auto load8DP =
+      DP::Ph1::RXLoad::make(ninebus.load8.Name, CPS::Logger::Level::off);
+  load8DP->setParameters(
+      ninebus.load8.RealPower,
+      ninebus.load8.ReactivePower,
       ninebus.load8.BaseVoltage);
 
   // Lines
-  auto line54EMT =
-      EMT::Ph3::PiLine::make(ninebus.line54.Name, CPS::Logger::Level::off);
-  line54EMT->setParameters(
-      Math::singlePhaseParameterToThreePhase(ninebus.line54.Resistance),
-      Math::singlePhaseParameterToThreePhase(ninebus.line54.Inductance),
-      Math::singlePhaseParameterToThreePhase(ninebus.line54.Capacitance),
-      Math::singlePhaseParameterToThreePhase(ninebus.line54.Conductance));
+  auto line54DP =
+      DP::Ph1::PiLine::make(ninebus.line54.Name, CPS::Logger::Level::off);
+  line54DP->setParameters(
+      ninebus.line54.Resistance,
+      ninebus.line54.Inductance,
+      ninebus.line54.Capacitance,
+      ninebus.line54.Conductance);
 
-  auto line64EMT =
-      EMT::Ph3::PiLine::make(ninebus.line64.Name, CPS::Logger::Level::off);
-  line64EMT->setParameters(
-      Math::singlePhaseParameterToThreePhase(ninebus.line64.Resistance),
-      Math::singlePhaseParameterToThreePhase(ninebus.line64.Inductance),
-      Math::singlePhaseParameterToThreePhase(ninebus.line64.Capacitance),
-      Math::singlePhaseParameterToThreePhase(ninebus.line64.Conductance));
+  auto line64DP =
+      DP::Ph1::PiLine::make(ninebus.line64.Name, CPS::Logger::Level::off);
+  line64DP->setParameters(
+      ninebus.line64.Resistance,
+      ninebus.line64.Inductance,
+      ninebus.line64.Capacitance,
+      ninebus.line64.Conductance);
 
-  auto line75EMT =
-      EMT::Ph3::PiLine::make(ninebus.line75.Name, CPS::Logger::Level::off);
-  line75EMT->setParameters(
-      Math::singlePhaseParameterToThreePhase(ninebus.line75.Resistance),
-      Math::singlePhaseParameterToThreePhase(ninebus.line75.Inductance),
-      Math::singlePhaseParameterToThreePhase(ninebus.line75.Capacitance),
-      Math::singlePhaseParameterToThreePhase(ninebus.line75.Conductance));
+  auto line75DP =
+      DP::Ph1::PiLine::make(ninebus.line75.Name, CPS::Logger::Level::off);
+  line75DP->setParameters(
+      ninebus.line75.Resistance,
+      ninebus.line75.Inductance,
+      ninebus.line75.Capacitance,
+      ninebus.line75.Conductance);
 
-  auto line96EMT =
-      EMT::Ph3::PiLine::make(ninebus.line96.Name, CPS::Logger::Level::off);
-  line96EMT->setParameters(
-      Math::singlePhaseParameterToThreePhase(ninebus.line96.Resistance),
-      Math::singlePhaseParameterToThreePhase(ninebus.line96.Inductance),
-      Math::singlePhaseParameterToThreePhase(ninebus.line96.Capacitance),
-      Math::singlePhaseParameterToThreePhase(ninebus.line96.Conductance));
+  auto line96DP =
+      DP::Ph1::PiLine::make(ninebus.line96.Name, CPS::Logger::Level::off);
+  line96DP->setParameters(
+      ninebus.line96.Resistance,
+      ninebus.line96.Inductance,
+      ninebus.line96.Capacitance,
+      ninebus.line96.Conductance);
 
-  auto line78EMT =
-      EMT::Ph3::PiLine::make(ninebus.line78.Name, CPS::Logger::Level::off);
-  line78EMT->setParameters(
-      Math::singlePhaseParameterToThreePhase(ninebus.line78.Resistance),
-      Math::singlePhaseParameterToThreePhase(ninebus.line78.Inductance),
-      Math::singlePhaseParameterToThreePhase(ninebus.line78.Capacitance),
-      Math::singlePhaseParameterToThreePhase(ninebus.line78.Conductance));
+  auto line78DP =
+      DP::Ph1::PiLine::make(ninebus.line78.Name, CPS::Logger::Level::off);
+  line78DP->setParameters(
+      ninebus.line78.Resistance,
+      ninebus.line78.Inductance,
+      ninebus.line78.Capacitance,
+      ninebus.line78.Conductance);
 
-  auto line89EMT =
-      EMT::Ph3::PiLine::make(ninebus.line89.Name, CPS::Logger::Level::off);
-  line89EMT->setParameters(
-      Math::singlePhaseParameterToThreePhase(ninebus.line89.Resistance),
-      Math::singlePhaseParameterToThreePhase(ninebus.line89.Inductance),
-      Math::singlePhaseParameterToThreePhase(ninebus.line89.Capacitance),
-      Math::singlePhaseParameterToThreePhase(ninebus.line89.Conductance));
+  auto line89DP =
+      DP::Ph1::PiLine::make(ninebus.line89.Name, CPS::Logger::Level::off);
+  line89DP->setParameters(
+      ninebus.line89.Resistance,
+      ninebus.line89.Inductance,
+      ninebus.line89.Capacitance,
+      ninebus.line89.Conductance);
 
   // Transformers
   // Check which is the high voltage side and which is the low voltage side
-  auto transf14EMT = EMT::Ph3::Transformer::make(ninebus.transf14.Name,
+  auto transf14DP = DP::Ph1::Transformer::make(ninebus.transf14.Name,
                                                  CPS::Logger::Level::off);
-  transf14EMT->setParameters(
+  transf14DP->setParameters(
       ninebus.transf14.VoltageLVSide, ninebus.transf14.VoltageHVSide,
       ninebus.transf14.RatedPower, ninebus.transf14.Ratio, 0.0,
-      Math::singlePhaseParameterToThreePhase(ninebus.transf14.Resistance),
-      Math::singlePhaseParameterToThreePhase(ninebus.transf14.Inductance));
+      ninebus.transf14.Resistance,
+      ninebus.transf14.Inductance);
 
-  auto transf27EMT = EMT::Ph3::Transformer::make(ninebus.transf27.Name,
+  auto transf27DP = DP::Ph1::Transformer::make(ninebus.transf27.Name,
                                                  CPS::Logger::Level::off);
-  transf27EMT->setParameters(
+  transf27DP->setParameters(
       ninebus.transf27.VoltageLVSide, ninebus.transf27.VoltageHVSide,
       ninebus.transf14.RatedPower, ninebus.transf27.Ratio, 0.0,
-      Math::singlePhaseParameterToThreePhase(ninebus.transf27.Resistance),
-      Math::singlePhaseParameterToThreePhase(ninebus.transf27.Inductance));
+      ninebus.transf27.Resistance,
+      ninebus.transf27.Inductance);
 
-  auto transf39EMT = EMT::Ph3::Transformer::make(ninebus.transf39.Name,
+  auto transf39DP = DP::Ph1::Transformer::make(ninebus.transf39.Name,
                                                  CPS::Logger::Level::off);
-  transf39EMT->setParameters(
+  transf39DP->setParameters(
       ninebus.transf39.VoltageLVSide, ninebus.transf39.VoltageHVSide,
       ninebus.transf14.RatedPower, ninebus.transf39.Ratio, 0.0,
-      Math::singlePhaseParameterToThreePhase(ninebus.transf39.Resistance),
-      Math::singlePhaseParameterToThreePhase(ninebus.transf39.Inductance));
+      ninebus.transf39.Resistance,
+      ninebus.transf39.Inductance);
 
   // Connect components to nodes
-  gen1EMT->connect({n1EMT});
-  gen2EMT->connect({n2EMT});
-  gen3EMT->connect({n3EMT});
+  gen1DP->connect({n1DP});
+  gen2DP->connect({n2DP});
+  gen3DP->connect({n3DP});
 
-  load5EMT->connect({n5EMT});
-  load6EMT->connect({n6EMT});
-  load8EMT->connect({n8EMT});
+  load5DP->connect({n5DP});
+  load6DP->connect({n6DP});
+  load8DP->connect({n8DP});
 
-  line54EMT->connect({n5EMT, n4EMT});
-  line64EMT->connect({n6EMT, n4EMT});
-  line75EMT->connect({n7EMT, n5EMT});
-  line96EMT->connect({n9EMT, n6EMT});
-  line78EMT->connect({n7EMT, n8EMT});
-  line89EMT->connect({n8EMT, n9EMT});
+  line54DP->connect({n5DP, n4DP});
+  line64DP->connect({n6DP, n4DP});
+  line75DP->connect({n7DP, n5DP});
+  line96DP->connect({n9DP, n6DP});
+  line78DP->connect({n7DP, n8DP});
+  line89DP->connect({n8DP, n9DP});
 
-  transf14EMT->connect({n1EMT, n4EMT});
-  transf27EMT->connect({n2EMT, n7EMT});
-  transf39EMT->connect({n3EMT, n9EMT});
+  transf14DP->connect({n1DP, n4DP});
+  transf27DP->connect({n2DP, n7DP});
+  transf39DP->connect({n3DP, n9DP});
 
   // Create system topology
-  auto systemEMT = SystemTopology(
+  auto systemDP = SystemTopology(
       ninebus.nomFreq, // System frequency in Hz
-      SystemNodeList{n1EMT, n2EMT, n3EMT, n4EMT, n5EMT, n6EMT, n7EMT, n8EMT,
-                     n9EMT},
-      SystemComponentList{gen1EMT, gen2EMT, gen3EMT, load5EMT, load6EMT,
-                          load8EMT, line54EMT, line64EMT, line75EMT, line96EMT,
-                          line78EMT, line89EMT, transf14EMT, transf27EMT,
-                          transf39EMT});
+      SystemNodeList{n1DP, n2DP, n3DP, n4DP, n5DP, n6DP, n7DP, n8DP,
+                     n9DP},
+      SystemComponentList{gen1DP, gen2DP, gen3DP, load5DP, load6DP,
+                          load8DP, line54DP, line64DP, line75DP, line96DP,
+                          line78DP, line89DP, transf14DP, transf27DP,
+                          transf39DP});
 
-  systemEMT.initWithPowerflow(systemPF, Domain::EMT);
+  systemDP.initWithPowerflow(systemPF, Domain::DP);
 
-  auto cs = EMT::Ph3::ControlledCurrentSource::make("cs");
-  cs->setParameters(CPS::Math::singlePhaseParameterToThreePhase(0));
-  auto rcs = EMT::Ph3::Resistor::make("Rcs");
-  rcs->setParameters(CPS::Math::singlePhaseParameterToThreePhase(1e8));
+  auto cs = DP::Ph1::ControlledCurrentSource::make("cs");
+  cs->setParameters(0);
+  auto rcs = DP::Ph1::Resistor::make("Rcs");
+  rcs->setParameters(1e8);
 
-  cs->connect({n6EMT, SimNode<Real>::GND});
-  rcs->connect({n6EMT, SimNode<Real>::GND});
+  cs->connect({n6DP, SimNode<Complex>::GND});
+  rcs->connect({n6DP, SimNode<Complex>::GND});
   cs->initializeFromNodesAndTerminals(ninebus.nomFreq);
   rcs->initializeFromNodesAndTerminals(ninebus.nomFreq);
 
-  systemEMT.addComponent(cs);
-  systemEMT.addComponent(rcs);
+  systemDP.addComponent(cs);
+  systemDP.addComponent(rcs);
 
   // Logger
   if (logger) {
 // Logging
-logger->logAttribute("BUS1", n1EMT->attribute("v"));
-logger->logAttribute("BUS2", n2EMT->attribute("v"));
-logger->logAttribute("BUS3", n3EMT->attribute("v"));
-logger->logAttribute("BUS4", n4EMT->attribute("v"));
-logger->logAttribute("BUS5", n5EMT->attribute("v"));
-logger->logAttribute("BUS6", n6EMT->attribute("v"));
-logger->logAttribute("BUS7", n7EMT->attribute("v"));
-logger->logAttribute("BUS8", n8EMT->attribute("v"));
-logger->logAttribute("BUS9", n9EMT->attribute("v"));
+logger->logAttribute("BUS1", n1DP->attribute("v"));
+logger->logAttribute("BUS2", n2DP->attribute("v"));
+logger->logAttribute("BUS3", n3DP->attribute("v"));
+logger->logAttribute("BUS4", n4DP->attribute("v"));
+logger->logAttribute("BUS5", n5DP->attribute("v"));
+logger->logAttribute("BUS6", n6DP->attribute("v"));
+logger->logAttribute("BUS7", n7DP->attribute("v"));
+logger->logAttribute("BUS8", n8DP->attribute("v"));
+logger->logAttribute("BUS9", n9DP->attribute("v"));
 
 // log generator's current
-for (auto comp : systemEMT.mComponents) {
-if (std::dynamic_pointer_cast<CPS::EMT::Ph3::SynchronGenerator4OrderVBR>(comp)) {
+for (auto comp : systemDP.mComponents) {
+if (std::dynamic_pointer_cast<CPS::DP::Ph1::SynchronGenerator4OrderVBR>(comp)) {
     logger->logAttribute(comp->name() + ".I", comp->attribute("i_intf"));
     logger->logAttribute(comp->name() + ".V", comp->attribute("v_intf"));
     logger->logAttribute(comp->name() + ".omega", comp->attribute("w_r"));
@@ -531,32 +533,32 @@ if (std::dynamic_pointer_cast<CPS::EMT::Ph3::SynchronGenerator4OrderVBR>(comp)) 
 
 
 // log transfomers voltages & currents
-for (auto comp : systemEMT.mComponents) {
-if (std::dynamic_pointer_cast<CPS::EMT::Ph3::Transformer>(comp)) {
+for (auto comp : systemDP.mComponents) {
+if (std::dynamic_pointer_cast<CPS::DP::Ph1::Transformer>(comp)) {
     logger->logAttribute(comp->name() + ".I", comp->attribute("i_intf"));
     logger->logAttribute(comp->name() + ".V", comp->attribute("v_intf"));    
 }
 }
 
 // log Lines voltages & currents
-for (auto comp : systemEMT.mComponents) {
-if (std::dynamic_pointer_cast<CPS::EMT::Ph3::PiLine>(comp)) {
+for (auto comp : systemDP.mComponents) {
+if (std::dynamic_pointer_cast<CPS::DP::Ph1::PiLine>(comp)) {
     logger->logAttribute(comp->name() + ".I", comp->attribute("i_intf"));
     logger->logAttribute(comp->name() + ".V", comp->attribute("v_intf"));    
 }
 }
   }
 
-  systemEMT.removeComponent(ninebus.load6.Name);
-  systemEMT.renderToFile("logs/" + simNameEMT + ".svg");
+  systemDP.removeComponent(ninebus.load6.Name);
+  systemDP.renderToFile("logs/" + simNameDP + ".svg");
 
-  return systemEMT;
+  return systemDP;
 }
 
 int main(int argc, char *argv[]) {
-  CommandLineArgs args(argc, argv, "EMT-9bus-4order", 0.01, 10 * 60, ninebus.nomFreq, -1,
+  CommandLineArgs args(argc, argv, "DP-9bus-4order", 0.01, 10 * 60, ninebus.nomFreq, -1,
                        CPS::Logger::Level::info, CPS::Logger::Level::off, false,
-                       false, false, CPS::Domain::EMT);
+                       false, false, CPS::Domain::DP);
   std::error_code ec;
   std::filesystem::create_directories("./logs", ec);
 
@@ -576,7 +578,7 @@ int main(int argc, char *argv[]) {
 
   Simulation sim(args.name, args);
   sim.setSystem(sys);
-  sim.setDomain(Domain::EMT);
+  sim.setDomain(Domain::DP);
   sim.doSystemMatrixRecomputation(true);
   sim.setLogStepTimes(true);
   sim.checkForOverruns(args.name + "_overruns");
@@ -586,7 +588,7 @@ int main(int argc, char *argv[]) {
   sim.run();
 
   sim.logStepTimes(args.name + "_step_times");
-  CPS::Logger::get("EMT-9bus-4order")->info("Simulation finished.");
+  CPS::Logger::get("DP-9bus-4order")->info("Simulation finished.");
 
   // std::ofstream of("task_dependencies.svg");
   // sim.dependencyGraph().render(of);

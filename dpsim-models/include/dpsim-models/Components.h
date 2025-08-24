@@ -42,6 +42,7 @@
 #include <dpsim-models/DP/DP_Ph1_AvVoltageSourceInverterDQ.h>
 #include <dpsim-models/DP/DP_Ph1_Capacitor.h>
 #include <dpsim-models/DP/DP_Ph1_CurrentSource.h>
+#include <dpsim-models/DP/DP_Ph1_ControlledCurrentSource.h>
 #include <dpsim-models/DP/DP_Ph1_Inductor.h>
 #include <dpsim-models/DP/DP_Ph1_Inverter.h>
 #include <dpsim-models/DP/DP_Ph1_NetworkInjection.h>

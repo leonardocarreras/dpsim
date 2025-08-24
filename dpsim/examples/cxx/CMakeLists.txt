@@ -91,6 +91,8 @@ set(CIRCUIT_SOURCES
 	Circuits/SP_SynGenTrStab_3Bus_Fault.cpp
 
 	# 9Bus System
+	Circuits/DP_9bus_4order.cpp
+	Circuits/DP_9bus_4order_RT.cpp
 	Circuits/EMT_9bus_4order.cpp
 )
 
@@ -168,7 +170,7 @@ if(WITH_RT)
 endif()
 
 if(WITH_CIM)
-	list(APPEND LIBRARIES libcimpp)
+	list(APPEND LIBRARIES CIMPP::cimpp)
 
 	set(CIM_SOURCES
 		CIM/WSCC-9bus_CIM.cpp
