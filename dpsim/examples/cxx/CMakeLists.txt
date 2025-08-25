@@ -92,6 +92,7 @@ set(CIRCUIT_SOURCES
 
 	# 9Bus System
 	Circuits/EMT_9bus_4order.cpp
+	Circuits/EMT_cosim_9bus_4order.cpp
 )
 
 if(WITH_JSON)
