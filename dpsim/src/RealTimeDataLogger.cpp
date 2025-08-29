@@ -41,6 +41,10 @@ void RealTimeDataLogger::start() {
 }
 
 void RealTimeDataLogger::stop() {
+  auto log = CPS::Logger::get("RealTimeDataLogger", CPS::Logger::Level::off,
+                              CPS::Logger::Level::info);
+  log->info("Stopping real-time data logger. Writing memory to file {}", mFilename.string());
+  
   auto mLogFile =
       std::ofstream(mFilename, std::ios_base::out | std::ios_base::trunc);
   if (!mLogFile.is_open()) {
@@ -59,6 +63,7 @@ void RealTimeDataLogger::stop() {
     mLogFile << '\n';
   }
   mLogFile.close();
+  log->info("Finished writing real-time data log to file {}.", mFilename.string());
 }
 
 void RealTimeDataLogger::log(Real time, Int timeStepCount) {
