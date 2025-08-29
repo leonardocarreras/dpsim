@@ -117,11 +117,15 @@ int main(int argc, char *argv[]) {
   logger->logAttribute("wr_gen", gen->attribute("w_r"));
 
   // Log further variables if exciter connected
-  if (withExciter) {
-    logger->logAttribute("vh_exc_gen", gen->mExciter->attribute("Vh"));
-    logger->logAttribute("vr_exc_gen", gen->mExciter->attribute("Vr"));
-    logger->logAttribute("vf_exc_gen", gen->mExciter->attribute("Ef"));
+if (withExciter) {
+  auto exc =
+      std::dynamic_pointer_cast<CPS::Signal::ExciterDC1Simp>(gen->mExciter);
+  if (exc) {
+    logger->logAttribute("vh_exc_gen", exc->attribute("Vh"));
+    logger->logAttribute("vr_exc_gen", exc->attribute("Vr"));
+    logger->logAttribute("vf_exc_gen", exc->attribute("Ef"));
   }
+}
 
   Simulation sim(simName, Logger::Level::info);
   sim.setSystem(sys);
