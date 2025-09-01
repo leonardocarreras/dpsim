@@ -1,0 +1,23 @@
+[run]
+# Only trace dpsim related code
+source =
+    dpsimpy
+    dpsimpyvillas
+    dpsim
+parallel = True
+# Don’t warn about ephemeral notebook cells
+disable_warnings = couldnt-parse
+
+# Don’t waste time in deps
+omit =
+    */site-packages/*
+    */dist-packages/*
+    */ipykernel_*
+    */jupyter/*
+
+[report]
+omit =
+    */site-packages/*
+    */dist-packages/*
+    */ipykernel_*
+    */jupyter/*
