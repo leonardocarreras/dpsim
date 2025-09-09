@@ -8,10 +8,6 @@
 #pragma once
 
 #include <dpsim-models/MNASimPowerComp.h>
-#include <dpsim-models/Signal/CosineFMGenerator.h>
-#include <dpsim-models/Signal/FrequencyRampGenerator.h>
-#include <dpsim-models/Signal/SignalGenerator.h>
-#include <dpsim-models/Signal/SineWaveGenerator.h>
 #include <dpsim-models/Solver/MNAInterface.h>
 
 namespace CPS {
@@ -25,7 +21,7 @@ class ControlledCurrentSource : public MNASimPowerComp<Real>,
                                 public SharedFactory<ControlledCurrentSource> {
 protected:
   // Updates current according to reference phasor and frequency
-  void updateCurrent(Real time);
+  void updateCurrent();
 
 public:
   const Attribute<Matrix>::Ptr mCurrentRef;
