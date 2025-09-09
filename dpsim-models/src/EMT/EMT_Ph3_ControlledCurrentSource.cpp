@@ -20,6 +20,7 @@ EMT::Ph3::ControlledCurrentSource::ControlledCurrentSource(
   **mIntfVoltage = Matrix::Zero(3, 1);
   **mIntfCurrent = Matrix::Zero(3, 1);
 }
+
 SimPowerComp<Real>::Ptr EMT::Ph3::ControlledCurrentSource::clone(String name) {
   auto copy = ControlledCurrentSource::make(name, mLogLevel);
   copy->setParameters(attributeTyped<Matrix>("I_ref")->get());
@@ -89,7 +90,7 @@ void EMT::Ph3::ControlledCurrentSource::mnaCompApplyRightSideVectorStamp(
   }
 }
 
-void EMT::Ph3::ControlledCurrentSource::updateCurrent(Real time) {
+void EMT::Ph3::ControlledCurrentSource::updateCurrent() {
   **mIntfCurrent = **mCurrentRef;
 
   SPDLOG_LOGGER_DEBUG(mSLog, "\nUpdate current: {:s}",
@@ -102,12 +103,12 @@ void EMT::Ph3::ControlledCurrentSource::mnaCompAddPreStepDependencies(
     AttributeBase::List &modifiedAttributes) {
   attributeDependencies.push_back(mCurrentRef);
   modifiedAttributes.push_back(mRightVector);
-  modifiedAttributes.push_back(mIntfVoltage);
+  modifiedAttributes.push_back(mIntfCurrent); // Is this correct?
 }
 
 void EMT::Ph3::ControlledCurrentSource::mnaCompPreStep(Real time,
                                                        Int timeStepCount) {
-  updateCurrent(time);
+  updateCurrent();
   mnaCompApplyRightSideVectorStamp(**mRightVector);
 }
 
