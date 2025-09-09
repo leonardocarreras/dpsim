@@ -91,6 +91,7 @@ set(CIRCUIT_SOURCES
 	Circuits/SP_SynGenTrStab_3Bus_Fault.cpp
 
 	# 9Bus System
+	Circuits/DP_Ph1_9bus_4order.cpp
 	Circuits/EMT_Ph3_9bus_4order.cpp
 )
 
