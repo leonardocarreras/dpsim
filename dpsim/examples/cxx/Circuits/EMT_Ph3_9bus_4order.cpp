@@ -11,7 +11,7 @@ CPS::CIM::Examples::Grids::NineBus::ScenarioConfig ninebus;
 SystemTopology buildTopology(CommandLineArgs &args,
                              std::shared_ptr<DataLoggerInterface> logger) {
 
-  String simName = "EMT-9bus-4order";
+  String simName = args.name;
 
   // POWER FLOW FOR INITIALIZATION
   CPS::Logger::get(args.name)->info("Creating power flow initialization.");
@@ -481,19 +481,6 @@ SystemTopology buildTopology(CommandLineArgs &args,
 
   systemEMT.initWithPowerflow(systemPF, Domain::EMT);
 
-  auto cs = EMT::Ph3::ControlledCurrentSource::make("cs");
-  cs->setParameters(CPS::Math::singlePhaseParameterToThreePhase(0));
-  auto rcs = EMT::Ph3::Resistor::make("Rcs");
-  rcs->setParameters(CPS::Math::singlePhaseParameterToThreePhase(1e8));
-
-  cs->connect({n6EMT, SimNode<Real>::GND});
-  rcs->connect({n6EMT, SimNode<Real>::GND});
-  cs->initializeFromNodesAndTerminals(ninebus.nomFreq);
-  rcs->initializeFromNodesAndTerminals(ninebus.nomFreq);
-
-  systemEMT.addComponent(cs);
-  systemEMT.addComponent(rcs);
-
   // Logger
   if (logger) {
     // Logging
@@ -535,7 +522,6 @@ SystemTopology buildTopology(CommandLineArgs &args,
     }
   }
 
-  systemEMT.removeComponent(ninebus.load6.Name);
   systemEMT.renderToFile("logs/" + simNameEMT + ".svg");
 
   return systemEMT;
