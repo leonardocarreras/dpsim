@@ -23,7 +23,7 @@ RealTimeDataLogger::RealTimeDataLogger(std::filesystem::path &filename,
 RealTimeDataLogger::RealTimeDataLogger(std::filesystem::path &filename,
                                        Real finalTime, Real timeStep)
     : DataLoggerInterface(), mFilename(filename),
-      mRowNumber((finalTime / timeStep + 0.5)), mCurrentRow(0),
+      mRowNumber((finalTime / timeStep + 1)), mCurrentRow(0),
       mCurrentAttribute(0), mAttributeData() {}
 
 void RealTimeDataLogger::start() {

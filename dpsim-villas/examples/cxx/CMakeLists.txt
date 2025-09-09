@@ -36,6 +36,15 @@ if(WITH_CIM)
 	list(APPEND INCLUDE_DIRS ${CIMPP_INCLUDE_DIRS})
 endif()
 
+set(DPSIM_VILLAS_RT_EXAMPLE_SOURCES
+	DP_Ph1_9bus_4order_RT_cosim_main.cpp
+	EMT_Ph3_simple_cosim_follower.cpp
+	EMT_Ph3_simple_cosim_leader.cpp)
+
+if(WITH_RT)
+	list(APPEND DPSIM_VILLAS_EXAMPLE_SOURCES ${DPSIM_VILLAS_RT_EXAMPLE_SOURCES})
+endif()
+
 foreach(SOURCE ${DPSIM_VILLAS_EXAMPLE_SOURCES} ${CIM_DPSIM_VILLAS_SOURCES})
 	get_filename_component(TARGET ${SOURCE} NAME_WE)
 

@@ -21,6 +21,7 @@ EMT::Ph3::ControlledVoltageSource::ControlledVoltageSource(
   setTerminalNumber(2);
   **mIntfVoltage = Matrix::Zero(3, 1);
   **mIntfCurrent = Matrix::Zero(3, 1);
+  **mVoltageRef = Matrix::Zero(3, 1);
 }
 
 void EMT::Ph3::ControlledVoltageSource::setParameters(Matrix voltageRef) {
@@ -125,7 +126,7 @@ void EMT::Ph3::ControlledVoltageSource::mnaCompApplyRightSideVectorStamp(
                          (**mIntfVoltage)(2, 0));
 }
 
-void EMT::Ph3::ControlledVoltageSource::updateVoltage(Real time) {
+void EMT::Ph3::ControlledVoltageSource::updateVoltage() {
   **mIntfVoltage = **mVoltageRef;
 
   SPDLOG_LOGGER_DEBUG(mSLog, "\nUpdate Voltage: {:s}",
@@ -143,7 +144,7 @@ void EMT::Ph3::ControlledVoltageSource::mnaCompAddPreStepDependencies(
 
 void EMT::Ph3::ControlledVoltageSource::mnaCompPreStep(Real time,
                                                        Int timeStepCount) {
-  updateVoltage(time);
+  updateVoltage();
   mnaCompApplyRightSideVectorStamp(**mRightVector);
 }
 

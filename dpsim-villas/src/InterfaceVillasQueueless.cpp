@@ -74,16 +74,6 @@ void InterfaceVillasQueueless::createNode() {
                         ret);
     std::exit(1);
   }
-
-  ret = mNode->prepare();
-  if (ret < 0) {
-    SPDLOG_LOGGER_ERROR(mLog,
-                        "Error: Node in InterfaceVillas failed to prepare. "
-                        "Prepare returned code {}",
-                        ret);
-    std::exit(1);
-  }
-  SPDLOG_LOGGER_INFO(mLog, "Node: {}", mNode->getNameFull());
 }
 
 static node::SignalType stdTypeToNodeType(const std::type_info &type) {
@@ -101,11 +91,15 @@ static node::SignalType stdTypeToNodeType(const std::type_info &type) {
 }
 
 void InterfaceVillasQueueless::createSignals() {
-  mNode->out.path = new node::Path();
+  if (!mNode->out.path)
+    mNode->out.path = new node::Path();
+  if (!mNode->in.path)
+    mNode->in.path = new node::Path();
+
   mNode->out.path->signals = std::make_shared<node::SignalList>();
-  node::SignalList::Ptr nodeOutputSignals =
-      mNode->out.path->getOutputSignals(false);
+  auto nodeOutputSignals = mNode->out.path->signals;
   nodeOutputSignals->clear();
+
   unsigned int idx = 0;
   for (const auto &[attr, id] : mExportAttrsDpsim) {
     while (id > idx) {
@@ -115,14 +109,13 @@ void InterfaceVillasQueueless::createSignals() {
     }
     nodeOutputSignals->push_back(std::make_shared<node::Signal>(
         "", "", stdTypeToNodeType(attr->getType())));
+    idx++;
   }
 
-  node::SignalList::Ptr nodeInputSignals = mNode->getInputSignals(true);
-  if (nodeInputSignals == nullptr) {
-    nodeInputSignals = std::make_shared<node::SignalList>();
-  } else {
-    nodeInputSignals->clear();
-  }
+  mNode->in.path->signals = std::make_shared<node::SignalList>();
+  auto nodeInputSignals = mNode->in.path->signals;
+  nodeInputSignals->clear();
+
   idx = 0;
   for (const auto &[attr, id, blockOnRead, syncOnSimulationStart] :
        mImportAttrsDpsim) {
@@ -141,10 +134,19 @@ void InterfaceVillasQueueless::open() {
   createNode();
   createSignals();
 
-  // We have no SuperNode, so just hope type_start doesn't use it...
+  int ret = mNode->prepare();
+  if (ret < 0) {
+    SPDLOG_LOGGER_ERROR(mLog,
+                        "Error: Node in InterfaceVillas failed to prepare. "
+                        "Prepare returned code {}",
+                        ret);
+    std::exit(1);
+  }
+  SPDLOG_LOGGER_INFO(mLog, "Node: {}", mNode->getNameFull());
+
   mNode->getFactory()->start(nullptr);
 
-  auto ret = mNode->start();
+  ret = mNode->start();
   if (ret < 0) {
     SPDLOG_LOGGER_ERROR(mLog,
                         "Fatal error: failed to start node in InterfaceVillas. "
@@ -213,70 +215,68 @@ Int InterfaceVillasQueueless::readFromVillas() {
   node::Sample *sample = nullptr;
   Int seqnum = 0;
   int ret = 0;
-  if (mImportAttrsDpsim.size() == 0) {
+
+  if (mImportAttrsDpsim.empty())
     return 0;
-  }
+
   try {
     sample = node::sample_alloc(&mSamplePool);
-    ret = 0;
-    while (ret == 0) {
-      ret = mNode->read(&sample, 1);
-      if (ret < 0) {
-        SPDLOG_LOGGER_ERROR(mLog,
-                            "Fatal error: failed to read sample from "
-                            "InterfaceVillas. Read returned code {}",
-                            ret);
-        close();
-        std::exit(1);
-      } else if (ret == 0) {
-        SPDLOG_LOGGER_WARN(mLog,
-                           "InterfaceVillas read returned 0. Retrying...");
+    if (!sample)
+      throw RuntimeError("sample_alloc returned nullptr");
+
+    ret = mNode->read(&sample, 1);
+    if (ret <= 0) {
+      if (ret == 0) {
+        SPDLOG_LOGGER_WARN(mLog, "InterfaceVillas read returned 0.");
+      } else {
+        SPDLOG_LOGGER_ERROR(mLog, "InterfaceVillas read failed: {}", ret);
       }
+      sample_decref(sample);
+      return mSequenceToDpsim;
     }
 
-    if (sample->length != mImportAttrsDpsim.size()) {
-      SPDLOG_LOGGER_ERROR(mLog,
-                          "Error: Received Sample length ({}) does not match "
-                          "configured attributes length ({})",
-                          sample->length, mImportAttrsDpsim.size());
-      throw RuntimeError(
-          "Received Sample length does not match configured attributes length");
+    if ((UInt)sample->length != mImportAttrsDpsim.size()) {
+      SPDLOG_LOGGER_ERROR(
+          mLog, "Received Sample length ({}) != configured attributes ({})",
+          sample->length, mImportAttrsDpsim.size());
+      sample_decref(sample);
+      throw RuntimeError("Sample length mismatch");
     }
 
     for (size_t i = 0; i < mImportAttrsDpsim.size(); i++) {
       auto attr = std::get<0>(mImportAttrsDpsim[i]);
       if (attr->getType() == typeid(Real)) {
-        auto attrReal =
-            std::dynamic_pointer_cast<Attribute<Real>>(attr.getPtr());
-        attrReal->set(sample->data[i].f);
+        auto a = std::dynamic_pointer_cast<Attribute<Real>>(attr.getPtr());
+        a->set(sample->data[i].f);
       } else if (attr->getType() == typeid(Int)) {
-        auto attrInt = std::dynamic_pointer_cast<Attribute<Int>>(attr.getPtr());
-        attrInt->set(sample->data[i].i);
-        if (i == 0) {
-          seqnum = sample->data[i].i;
-        }
+        auto a = std::dynamic_pointer_cast<Attribute<Int>>(attr.getPtr());
+        a->set(sample->data[i].i);
       } else if (attr->getType() == typeid(Bool)) {
-        auto attrBool =
-            std::dynamic_pointer_cast<Attribute<Bool>>(attr.getPtr());
-        attrBool->set(sample->data[i].b);
+        auto a = std::dynamic_pointer_cast<Attribute<Bool>>(attr.getPtr());
+        a->set(sample->data[i].b);
       } else if (attr->getType() == typeid(Complex)) {
-        auto attrComplex =
-            std::dynamic_pointer_cast<Attribute<Complex>>(attr.getPtr());
-        attrComplex->set(
-            Complex(sample->data[i].z.real(), sample->data[i].z.imag()));
+        auto a = std::dynamic_pointer_cast<Attribute<Complex>>(attr.getPtr());
+        a->set(Complex(sample->data[i].z.real(), sample->data[i].z.imag()));
       } else {
-        SPDLOG_LOGGER_ERROR(mLog, "Error: Unsupported attribute type!");
-        throw RuntimeError("Unsupported attribute type!");
+        sample_decref(sample);
+        throw RuntimeError("Unsupported attribute type");
       }
     }
 
+    if (sample->flags & (int)villas::node::SampleFlags::HAS_SEQUENCE) {
+      seqnum = sample->sequence;
+    } else if (!mImportAttrsDpsim.empty() &&
+               std::get<0>(mImportAttrsDpsim[0])->getType() == typeid(Int)) {
+      seqnum = sample->data[0].i;
+    }
+
     sample_decref(sample);
-  } catch (const std::exception &) {
+  } catch (...) {
     if (sample)
       sample_decref(sample);
-
     throw;
   }
+
   return seqnum;
 }
 
@@ -285,42 +285,38 @@ void InterfaceVillasQueueless::PostStep::execute(Real time, Int timeStepCount) {
 }
 
 void InterfaceVillasQueueless::writeToVillas() {
-  if (mExportAttrsDpsim.size() == 0) {
+  if (mExportAttrsDpsim.empty())
     return;
-  }
+
   node::Sample *sample = nullptr;
   Int ret = 0;
+
   try {
     sample = node::sample_alloc(&mSamplePool);
-    if (sample == nullptr) {
+    if (!sample) {
       SPDLOG_LOGGER_ERROR(mLog, "InterfaceVillas could not allocate a new "
                                 "sample! Not sending any data!");
       return;
     }
 
-    sample->signals = mNode->getOutputSignals(false);
-
     for (size_t i = 0; i < mExportAttrsDpsim.size(); i++) {
       auto attr = std::get<0>(mExportAttrsDpsim[i]);
       if (attr->getType() == typeid(Real)) {
-        auto attrReal =
-            std::dynamic_pointer_cast<Attribute<Real>>(attr.getPtr());
-        sample->data[i].f = attrReal->get();
+        auto a = std::dynamic_pointer_cast<Attribute<Real>>(attr.getPtr());
+        sample->data[i].f = a->get();
       } else if (attr->getType() == typeid(Int)) {
-        auto attrInt = std::dynamic_pointer_cast<Attribute<Int>>(attr.getPtr());
-        sample->data[i].i = attrInt->get();
+        auto a = std::dynamic_pointer_cast<Attribute<Int>>(attr.getPtr());
+        sample->data[i].i = a->get();
       } else if (attr->getType() == typeid(Bool)) {
-        auto attrBool =
-            std::dynamic_pointer_cast<Attribute<Bool>>(attr.getPtr());
-        sample->data[i].b = attrBool->get();
+        auto a = std::dynamic_pointer_cast<Attribute<Bool>>(attr.getPtr());
+        sample->data[i].b = a->get();
       } else if (attr->getType() == typeid(Complex)) {
-        auto attrComplex =
-            std::dynamic_pointer_cast<Attribute<Complex>>(attr.getPtr());
-        sample->data[i].z = std::complex<float>(attrComplex->get().real(),
-                                                attrComplex->get().imag());
+        auto a = std::dynamic_pointer_cast<Attribute<Complex>>(attr.getPtr());
+        sample->data[i].z =
+            std::complex<float>(a->get().real(), a->get().imag());
       } else {
-        SPDLOG_LOGGER_ERROR(mLog, "Error: Unsupported attribute type!");
-        throw RuntimeError("Unsupported attribute type!");
+        sample_decref(sample);
+        throw RuntimeError("Unsupported attribute type");
       }
     }
 
@@ -334,35 +330,39 @@ void InterfaceVillasQueueless::writeToVillas() {
     do {
       ret = mNode->write(&sample, 1);
     } while (ret == 0);
-    if (ret < 0)
+    if (ret < 0) {
       SPDLOG_LOGGER_ERROR(mLog,
                           "Failed to write samples to InterfaceVillas. Write "
                           "returned code {}",
                           ret);
+    }
 
     sample_decref(sample);
-  } catch (const std::exception &) {
+  } catch (...) {
     sample_decref(sample);
-
     if (ret < 0)
       SPDLOG_LOGGER_ERROR(
           mLog,
           "Failed to write samples to InterfaceVillas. Write returned code {}",
           ret);
-
-    // Don't throw here, because we managed to send something
   }
 }
 
 void InterfaceVillasQueueless::syncImports() {
-  // Block on read until all attributes with syncOnSimulationStart are read
+  bool needSync = false;
+  for (const auto &t : mImportAttrsDpsim) {
+    if (std::get<3>(t)) {
+      needSync = true;
+      break;
+    }
+  }
+  if (!needSync)
+    return;
+
   mSequenceToDpsim = this->readFromVillas();
 }
 
-void InterfaceVillasQueueless::syncExports() {
-  // Just push all the attributes
-  this->writeToVillas();
-}
+void InterfaceVillasQueueless::syncExports() { this->writeToVillas(); }
 
 void InterfaceVillasQueueless::printVillasSignals() const {
   SPDLOG_LOGGER_INFO(mLog, "Export signals:");
