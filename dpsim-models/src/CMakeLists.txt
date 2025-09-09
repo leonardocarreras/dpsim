@@ -20,6 +20,7 @@ list(APPEND MODELS_SOURCES
 	Base/Base_AvVoltageSourceInverterDQWithStateSpace.cpp
 
 	DP/DP_Ph1_Capacitor.cpp
+	DP/DP_Ph1_ControlledCurrentSource.cpp
 	DP/DP_Ph1_CurrentSource.cpp
 	DP/DP_Ph1_Inductor.cpp
 	DP/DP_Ph1_PiLine.cpp
