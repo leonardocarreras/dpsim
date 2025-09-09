@@ -13,12 +13,13 @@ using namespace CPS;
 EMT::Ph3::ControlledCurrentSource::ControlledCurrentSource(
     String uid, String name, Logger::Level logLevel)
     : MNASimPowerComp<Real>(uid, name, true, true, logLevel),
-      mCurrentRef(mAttributes->create<Matrix>("I_ref")) {
+      mCurrentRef(mAttributes->createDynamic<Matrix>("I_ref")) {
   mPhaseType = PhaseType::ABC;
   setVirtualNodeNumber(0);
   setTerminalNumber(2);
   **mIntfVoltage = Matrix::Zero(3, 1);
   **mIntfCurrent = Matrix::Zero(3, 1);
+  **mCurrentRef = Matrix::Zero(3, 1);
 }
 
 SimPowerComp<Real>::Ptr EMT::Ph3::ControlledCurrentSource::clone(String name) {

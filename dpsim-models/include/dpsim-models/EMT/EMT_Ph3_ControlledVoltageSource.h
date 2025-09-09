@@ -25,7 +25,7 @@ class ControlledVoltageSource : public MNASimPowerComp<Real>,
                                 public SharedFactory<ControlledVoltageSource> {
 protected:
   // Updates voltage according to reference phasor and frequency
-  void updateVoltage(Real time);
+  void updateVoltage();
 
 public:
   const CPS::Attribute<Matrix>::Ptr mVoltageRef;

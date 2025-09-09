@@ -53,10 +53,10 @@ int main(int argc, char *argv[]) {
     {
       "type": "shmem",
       "in": {
-          "name": "shmem-dpsim"
+          "name": "shmem-for-follower"
       },
       "out": {
-          "name": "dpsim-shmem"
+          "name": "shmem-for-leader"
       },
       "queuelen": 1024
     })STRING";
