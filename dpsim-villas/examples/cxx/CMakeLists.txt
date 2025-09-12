@@ -39,7 +39,10 @@ endif()
 set(DPSIM_VILLAS_RT_EXAMPLE_SOURCES
 	DP_Ph1_9bus_4order_RT_cosim_main.cpp
 	EMT_Ph3_simple_cosim_follower.cpp
-	EMT_Ph3_simple_cosim_leader.cpp)
+	EMT_Ph3_simple_cosim_follower_v2.cpp
+	EMT_Ph3_simple_cosim_follower_v3.cpp
+	EMT_Ph3_simple_cosim_leader.cpp
+	EMT_Ph3_simple_cosim_leader_v2.cpp)
 
 if(WITH_RT)
 	list(APPEND DPSIM_VILLAS_EXAMPLE_SOURCES ${DPSIM_VILLAS_RT_EXAMPLE_SOURCES})
