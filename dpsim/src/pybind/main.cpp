@@ -17,6 +17,7 @@
 
 #include <DPsim.h>
 #include <dpsim-models/IdentifiedObject.h>
+#include <dpsim/InterfaceCosimSyncShmem.h>
 #include <dpsim/RealTimeSimulation.h>
 #include <dpsim/Simulation.h>
 
@@ -223,8 +224,47 @@ PYBIND11_MODULE(dpsimpy, m) {
       .def("run",
            static_cast<void (DPsim::RealTimeSimulation::*)(CPS::Int startIn)>(
                &DPsim::RealTimeSimulation::run))
+      .def("set_drop_threshold", &DPsim::RealTimeSimulation::setDropThreshold,
+           "threshold"_a)
+      .def("set_drop_enabled", &DPsim::RealTimeSimulation::setDropEnabled,
+           "enabled"_a)
       .def("set_solver", &DPsim::RealTimeSimulation::setSolverType)
       .def("set_domain", &DPsim::RealTimeSimulation::setDomain);
+
+  py::class_<DPsim::InterfaceCosimSyncShmem,
+             std::shared_ptr<DPsim::InterfaceCosimSyncShmem>>(
+      m, "InterfaceCosimSyncShmem")
+      .def(py::init([](const std::string &name, const std::string &shm_name,
+                       const std::string &role) {
+             DPsim::InterfaceCosimSyncShmem::Role r =
+                 (role == std::string("leader"))
+                     ? DPsim::InterfaceCosimSyncShmem::Role::Leader
+                     : DPsim::InterfaceCosimSyncShmem::Role::Follower;
+             return std::make_shared<DPsim::InterfaceCosimSyncShmem>(
+                 name, shm_name, r);
+           }),
+           "name"_a, "shm_name"_a, "role"_a)
+      .def("open", &DPsim::InterfaceCosimSyncShmem::open)
+      .def("close", &DPsim::InterfaceCosimSyncShmem::close)
+      .def(
+          "publish_config",
+          [](DPsim::InterfaceCosimSyncShmem &self, double start_time_sec,
+             uint64_t dt_ns, uint64_t duration_ns) {
+            auto tp =
+                std::chrono::system_clock::time_point(std::chrono::nanoseconds(
+                    static_cast<uint64_t>(start_time_sec * 1e9)));
+            self.publishConfig(tp, dt_ns, duration_ns);
+          },
+          "start_time_sec"_a, "time_step_ns"_a, "duration_ns"_a)
+      .def(
+          "wait_for_config",
+          [](DPsim::InterfaceCosimSyncShmem &self, uint64_t timeout_ms) {
+            DPsim::InterfaceCosimSyncShmem::ConfigNs cfg;
+            bool ok = self.waitForConfig(cfg, timeout_ms);
+            return py::make_tuple(ok, cfg.start_time_ns, cfg.time_step_ns,
+                                  cfg.duration_ns);
+          },
+          "timeout_ms"_a = 0);
 
   py::class_<CPS::SystemTopology, std::shared_ptr<CPS::SystemTopology>>(
       m, "SystemTopology")

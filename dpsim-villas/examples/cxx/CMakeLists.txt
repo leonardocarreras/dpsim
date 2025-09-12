@@ -42,7 +42,9 @@ set(DPSIM_VILLAS_RT_EXAMPLE_SOURCES
 	EMT_Ph3_simple_cosim_follower_v2.cpp
 	EMT_Ph3_simple_cosim_follower_v3.cpp
 	EMT_Ph3_simple_cosim_leader.cpp
-	EMT_Ph3_simple_cosim_leader_v2.cpp)
+	EMT_Ph3_simple_cosim_leader_v2.cpp
+	EMT_Ph3_simple_cosim_leader_v2_sync.cpp
+	EMT_Ph3_simple_cosim_follower_v2_sync.cpp)
 
 if(WITH_RT)
 	list(APPEND DPSIM_VILLAS_EXAMPLE_SOURCES ${DPSIM_VILLAS_RT_EXAMPLE_SOURCES})
