@@ -97,6 +97,17 @@ void InterfaceCosimSyncShmem::publishConfig(
     throw SystemError("CosimSyncShmem: publishConfig called in wrong state");
 
   auto *h = hdr();
+  // Sanity-logging: show deltas to help diagnose wrong epochs/units
+  auto now = std::chrono::system_clock::now();
+  auto delta = startAt - now;
+  if (delta > std::chrono::hours(1) || delta < -std::chrono::hours(1)) {
+    double secs =
+        std::chrono::duration_cast<std::chrono::duration<double>>(delta)
+            .count();
+    SPDLOG_LOGGER_WARN(
+        mLog, "CosimSyncShmem: start time is more than 1 hour away ({} s).",
+        secs);
+  }
   h->time_step_ns = timeStepNs;
   h->duration_ns = durationNs;
   h->start_time_ns = toEpochNs(startAt);
@@ -128,6 +139,13 @@ bool InterfaceCosimSyncShmem::waitForConfig(ConfigNs &outCfg,
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
   }
+  // Basic header validation
+  if (h->magic != MAGIC || h->version != VERSION) {
+    SPDLOG_LOGGER_ERROR(
+        mLog, "CosimSyncShmem: invalid header (magic=0x{:x}, version={}).",
+        h->magic, h->version);
+    return false;
+  }
   // Optional: ensure we saw an update
   if (h->sequence == seenSeq) {
     // still okay, continue
@@ -136,6 +154,19 @@ bool InterfaceCosimSyncShmem::waitForConfig(ConfigNs &outCfg,
   outCfg.start_time_ns = h->start_time_ns;
   outCfg.time_step_ns = h->time_step_ns;
   outCfg.duration_ns = h->duration_ns;
+  // Sanity-logging: show delta to current time
+  auto now = std::chrono::system_clock::now();
+  auto startAt = toTimePoint(outCfg.start_time_ns);
+  auto delta = startAt - now;
+  if (delta > std::chrono::hours(1) || delta < -std::chrono::hours(1)) {
+    double secs =
+        std::chrono::duration_cast<std::chrono::duration<double>>(delta)
+            .count();
+    SPDLOG_LOGGER_WARN(
+        mLog,
+        "CosimSyncShmem: received start time is more than 1 hour away ({} s).",
+        secs);
+  }
   return true;
 }
 

@@ -32,6 +32,7 @@ protected:
   size_t mCurrentAttribute;
 
   std::vector<std::vector<Real>> mAttributeData;
+  std::vector<bool> mIsInteger;
 
 public:
   typedef std::shared_ptr<RealTimeDataLogger> Ptr;

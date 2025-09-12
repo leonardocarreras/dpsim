@@ -40,6 +40,14 @@ void RealTimeDataLogger::start() {
     // We have to add one to the size because we also log the time
     it.resize(mAttributes.size() + 1);
   }
+
+  // Build an integer mask aligned with column order (0 is time -> not integer)
+  mIsInteger.clear();
+  mIsInteger.reserve(mAttributes.size() + 1);
+  mIsInteger.push_back(false);
+  for (auto &it : mAttributes) {
+    mIsInteger.push_back(it.second->getType() == typeid(Int));
+  }
 }
 
 void RealTimeDataLogger::stop() {
@@ -70,9 +78,18 @@ void RealTimeDataLogger::stop() {
   mLogFile << '\n';
 
   for (auto row : mAttributeData) {
+    // Time in scientific notation
     mLogFile << std::scientific << std::right << std::setw(14) << row[0];
-    for (size_t i = 1; i < row.size(); ++i)
-      mLogFile << ", " << std::right << std::setw(13) << row[i];
+    // Other columns: integers as plain integers; others scientific
+    for (size_t i = 1; i < row.size(); ++i) {
+      if (i < mIsInteger.size() && mIsInteger[i]) {
+        long long v = static_cast<long long>(row[i]);
+        mLogFile << ", " << std::right << std::setw(13) << v;
+      } else {
+        mLogFile << ", " << std::scientific << std::right << std::setw(13)
+                 << row[i];
+      }
+    }
     mLogFile << '\n';
   }
   mLogFile.close();

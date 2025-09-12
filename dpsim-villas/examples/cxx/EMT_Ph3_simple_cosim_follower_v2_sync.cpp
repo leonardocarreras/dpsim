@@ -171,10 +171,29 @@ int main(int argc, char *argv[]) {
   auto villasIntf = std::make_shared<InterfaceVillasQueueless>(
       buildVillasConfig(args), "VillasInterface", spdlog::level::off);
 
+  std::string shmName = "/dpsim_sync_case";
+  if (const char *env = std::getenv("DPSIM_SYNC_SHM")) {
+    shmName = env;
+  }
+  if (args.options.find("shm") != args.options.end()) {
+    shmName = args.getOptionString("shm");
+  }
   auto syncIntf = std::make_shared<InterfaceCosimSyncShmem>(
-      "CosimSync", "/dpsim_sync_emtp_v2",
-      InterfaceCosimSyncShmem::Role::Follower);
+      "CosimSync", shmName, InterfaceCosimSyncShmem::Role::Follower);
   syncIntf->open();
+
+  InterfaceCosimSyncShmem::ConfigNs cfg;
+  bool ok = syncIntf->waitForConfig(cfg, 10000);
+  if (!ok) {
+    CPS::Logger::get(args.name)->error("Timed out waiting for leader config");
+    return 1;
+  }
+  CPS::Logger::get(args.name)->info(
+      "Received sync from {} (dt_ns={}, duration_ns={})", shmName,
+      cfg.time_step_ns, cfg.duration_ns);
+  args.timeStep = static_cast<double>(cfg.time_step_ns) / 1e9;
+  args.duration = static_cast<double>(cfg.duration_ns) / 1e9;
+  auto startAt = InterfaceCosimSyncShmem::toTimePoint(cfg.start_time_ns);
 
   std::filesystem::path logFilename =
       "logs/" + args.name + "/" + args.name + ".csv";
@@ -192,26 +211,46 @@ int main(int argc, char *argv[]) {
   sim.setDomain(Domain::EMT);
   sim.doSystemMatrixRecomputation(true);
   sim.setLogStepTimes(true);
-  sim.setDropEnabled(true);
-  sim.setDropThreshold(0.95);
+  bool dropEnabled = true;
+  double dropThreshold = 0.95;
+  if (args.options.find("drop") != args.options.end()) {
+    try {
+      dropEnabled = args.getOptionBool("drop");
+    } catch (...) {
+    }
+  }
+  if (args.options.find("drop_threshold") != args.options.end()) {
+    try {
+      dropThreshold = args.getOptionReal("drop_threshold");
+    } catch (...) {
+    }
+  }
+  sim.setDropEnabled(dropEnabled);
+  sim.setDropThreshold(dropThreshold);
   if (logger)
     sim.addLogger(logger);
   if (args.options.find("threads") != args.options.end()) {
     auto numThreads = args.getOptionInt("threads");
     sim.setScheduler(std::make_shared<OpenMPLevelScheduler>(numThreads));
   }
-
-  InterfaceCosimSyncShmem::ConfigNs cfg;
-  bool ok = syncIntf->waitForConfig(cfg, 10000);
-  if (!ok) {
-    CPS::Logger::get(args.name)->error("Timed out waiting for leader config");
-    return 1;
+  sim.setTimeStep(args.timeStep);
+  sim.setFinalTime(args.duration);
+  // Sanity check: start time must be in the future; warn if > 1h away
+  {
+    using namespace std::chrono;
+    auto now = system_clock::now();
+    auto delta = startAt - now;
+    double secs = duration_cast<duration<double>>(delta).count();
+    if (secs < 0) {
+      CPS::Logger::get(args.name)->error(
+          "Start time is in the past by {} s. Aborting.", secs);
+      return 1;
+    }
+    if (secs > 3600.0) {
+      CPS::Logger::get(args.name)->warn(
+          "Start time is more than 1 hour away ({} s).", secs);
+    }
   }
-
-  sim.setTimeStep(static_cast<double>(cfg.time_step_ns) / 1e9);
-  sim.setFinalTime(static_cast<double>(cfg.duration_ns) / 1e9);
-  auto startAt = InterfaceCosimSyncShmem::toTimePoint(cfg.start_time_ns);
-
   sim.run(startAt);
 
   sim.logStepTimes(args.name + "_step_times");
