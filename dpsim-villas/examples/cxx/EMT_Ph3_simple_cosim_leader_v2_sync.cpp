@@ -169,9 +169,15 @@ int main(int argc, char *argv[]) {
       buildVillasConfig(args), "VillasInterface", spdlog::level::off);
 
   // New cosim sync interface (shared memory) for absolute start and config
+  std::string shmName = "/dpsim_sync_case";
+  if (const char *env = std::getenv("DPSIM_SYNC_SHM")) {
+    shmName = env;
+  }
+  if (args.options.find("shm") != args.options.end()) {
+    shmName = args.getOptionString("shm");
+  }
   auto syncIntf = std::make_shared<InterfaceCosimSyncShmem>(
-      "CosimSync", "/dpsim_sync_emtp_v2",
-      InterfaceCosimSyncShmem::Role::Leader);
+      "CosimSync", shmName, InterfaceCosimSyncShmem::Role::Leader);
   syncIntf->open();
 
   std::filesystem::path logFilename =
@@ -190,8 +196,23 @@ int main(int argc, char *argv[]) {
   sim.setDomain(Domain::EMT);
   sim.doSystemMatrixRecomputation(true);
   sim.setLogStepTimes(true);
-  sim.setDropEnabled(true);
-  sim.setDropThreshold(0.95);
+  // Default drop config; allow override via -o drop= and -o drop_threshold=
+  bool dropEnabled = true;
+  double dropThreshold = 0.95;
+  if (args.options.find("drop") != args.options.end()) {
+    try {
+      dropEnabled = args.getOptionBool("drop");
+    } catch (...) {
+    }
+  }
+  if (args.options.find("drop_threshold") != args.options.end()) {
+    try {
+      dropThreshold = args.getOptionReal("drop_threshold");
+    } catch (...) {
+    }
+  }
+  sim.setDropEnabled(dropEnabled);
+  sim.setDropThreshold(dropThreshold);
   if (logger)
     sim.addLogger(logger);
   if (args.options.find("threads") != args.options.end()) {
@@ -200,9 +221,28 @@ int main(int argc, char *argv[]) {
   }
 
   auto startAt = std::chrono::system_clock::now() + std::chrono::seconds(5);
+  // Sanity check: start time must be in the future; warn if > 1h away
+  {
+    using namespace std::chrono;
+    auto now = system_clock::now();
+    auto delta = startAt - now;
+    double secs = duration_cast<duration<double>>(delta).count();
+    if (secs < 0) {
+      CPS::Logger::get(args.name)->error(
+          "Start time is in the past by {} s. Aborting.", secs);
+      return 1;
+    }
+    if (secs > 3600.0) {
+      CPS::Logger::get(args.name)->warn(
+          "Start time is more than 1 hour away ({} s).", secs);
+    }
+  }
   uint64_t dt_ns = static_cast<uint64_t>(args.timeStep * 1e9);
   uint64_t dur_ns = static_cast<uint64_t>(args.duration * 1e9);
   syncIntf->publishConfig(startAt, dt_ns, dur_ns);
+  CPS::Logger::get(args.name)->info(
+      "Published sync to {} (dt_ns={}, duration_ns={})", shmName, dt_ns,
+      dur_ns);
 
   sim.run(startAt);
 

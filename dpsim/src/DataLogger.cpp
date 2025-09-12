@@ -137,8 +137,27 @@ void DataLogger::log(Real time, Int timeStepCount) {
   }
 
   mLogFile << std::scientific << std::right << std::setw(14) << time;
-  for (auto it : mAttributes)
-    mLogFile << ", " << std::right << std::setw(13) << it.second->toString();
+  for (auto &it : mAttributes) {
+    if (it.second->getType() == typeid(Int)) {
+      auto attr =
+          std::dynamic_pointer_cast<CPS::Attribute<Int>>(it.second.getPtr());
+      if (attr) {
+        mLogFile << ", " << std::right << std::setw(13) << attr->get();
+      } else {
+        mLogFile << ", " << std::right << std::setw(13) << 0;
+      }
+    } else {
+      auto attr =
+          std::dynamic_pointer_cast<CPS::Attribute<Real>>(it.second.getPtr());
+      if (attr) {
+        mLogFile << ", " << std::scientific << std::right << std::setw(13)
+                 << attr->get();
+      } else {
+        mLogFile << ", " << std::right << std::setw(13)
+                 << it.second->toString();
+      }
+    }
+  }
   mLogFile << '\n';
 }
 
