@@ -21,6 +21,7 @@ set(DPSIM_SOURCES
 	DiakopticsSolver.cpp
 	Interface.cpp
 	InterfaceQueued.cpp
+	InterfaceCosimSyncShmem.cpp
 )
 
 list(APPEND DPSIM_LIBRARIES

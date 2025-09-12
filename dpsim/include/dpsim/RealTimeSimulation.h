@@ -22,6 +22,11 @@ class RealTimeSimulation : public Simulation {
 
 protected:
   Timer mTimer;
+  // If > 0, skip component computations for the next step when
+  // the previous step consumed >= threshold * timestep. Range [0,1].
+  double mDropThreshold = 0.0;
+  // Feature toggle: when false, no dropping occurs even if threshold is set.
+  bool mDropEnabled = false;
 
 public:
   RealTimeSimulation(String name, CommandLineArgs &args);
@@ -39,5 +44,11 @@ public:
   void run(const Timer::StartClock::time_point &startAt);
 
   void run(Int startIn) { run(std::chrono::seconds(startIn)); }
+
+  // Configure frame-drop threshold (fraction of timestep).
+  // Set to 0.0 to disable dropping; typical values: 0.9, 0.95.
+  void setDropThreshold(double threshold) { mDropThreshold = threshold; }
+  // Enable/disable the dropping feature.
+  void setDropEnabled(bool enabled) { mDropEnabled = enabled; }
 };
 } // namespace DPsim

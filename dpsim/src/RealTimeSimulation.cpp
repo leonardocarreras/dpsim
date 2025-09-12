@@ -52,10 +52,51 @@ void RealTimeSimulation::run(const Timer::StartClock::time_point &startAt) {
   mTimer.setInterval(**mTimeStep);
   mTimer.start();
 
+  // Collect IO-only tasks (interfaces + loggers) for skip mode.
+  CPS::Task::List ioTasks;
+  for (auto intf : mInterfaces) {
+    for (auto t : intf->getTasks())
+      ioTasks.push_back(t);
+  }
+  for (auto lg : mLoggers) {
+    ioTasks.push_back(lg->getTask());
+  }
+
   // main loop
   do {
     mTimer.sleep();
-    step();
+    bool dropComputation = false;
+    if (mDropEnabled && mDropThreshold > 0.0 && !mStepTimes.empty()) {
+      // Compare last measured step time to threshold * dt
+      double lastStep = mStepTimes.back();
+      double dt = **mTimeStep;
+      if (lastStep >= mDropThreshold * dt) {
+        dropComputation = true;
+      }
+    }
+
+    if (dropComputation) {
+      // Skip component computations; only run interfaces and loggers and advance time.
+      std::chrono::steady_clock::time_point ioStart;
+      if (mLogStepTimes)
+        ioStart = std::chrono::steady_clock::now();
+
+      mEvents.handleEvents(mTime);
+      for (auto &task : ioTasks) {
+        task->execute(mTime, mTimeStepCount);
+      }
+
+      mTime += **mTimeStep;
+      ++mTimeStepCount;
+
+      if (mLogStepTimes) {
+        auto ioEnd = std::chrono::steady_clock::now();
+        std::chrono::duration<double> diff = ioEnd - ioStart;
+        mStepTimes.push_back(diff.count());
+      }
+    } else {
+      step();
+    }
 
     if (mTimer.ticks() == 1)
       SPDLOG_LOGGER_INFO(mLog, "Simulation started.");
