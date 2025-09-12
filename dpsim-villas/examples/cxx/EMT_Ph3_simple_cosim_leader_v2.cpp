@@ -98,24 +98,22 @@ SystemTopology buildTopology(CommandLineArgs &args,
   // Nodes
   auto n1EMT = SimNode<Real>::make("BUS1", PhaseType::ABC);
 
-  auto vl = EMT::Ph3::VoltageSource::make("vl");
-  vl->setParameters(
-      CPS::Math::singlePhaseVariableToThreePhase(CPS::Math::polar(1000, 0)),
-      50);
+  auto rl = EMT::Ph3::Resistor::make("rl");
+  rl->setParameters(CPS::Math::singlePhaseParameterToThreePhase(10));
 
   auto cs = EMT::Ph3::ControlledCurrentSource::make("cs");
   cs->setParameters(CPS::Math::singlePhaseParameterToThreePhase(0));
   auto rcs = EMT::Ph3::Resistor::make("rcs");
   rcs->setParameters(CPS::Math::singlePhaseParameterToThreePhase(1e8));
 
-  vl->connect({SimNode<Real>::GND, n1EMT});
+  rl->connect({n1EMT, SimNode<Real>::GND});
 
   cs->connect({n1EMT, SimNode<Real>::GND});
   rcs->connect({n1EMT, SimNode<Real>::GND});
   // Create system topology
   auto systemEMT =
       SystemTopology(50, // System frequency in Hz
-                     SystemNodeList{n1EMT}, SystemComponentList{vl, cs, rcs});
+                     SystemNodeList{n1EMT}, SystemComponentList{rl, cs, rcs});
 
   // Interface
   auto inFromExternal_SeqExternalAttribute = CPS::AttributeStatic<Int>::make(0);
@@ -162,8 +160,8 @@ SystemTopology buildTopology(CommandLineArgs &args,
 }
 
 int main(int argc, char *argv[]) {
-  CommandLineArgs args(argc, argv, "EMT_3Ph_simple_cosim_leader", 0.01, 1 * 60,
-                       50, -1, CPS::Logger::Level::info,
+  CommandLineArgs args(argc, argv, "EMT_3Ph_simple_cosim_leader_v2", 0.01,
+                       1 * 60, 50, -1, CPS::Logger::Level::info,
                        CPS::Logger::Level::off, false, false, false,
                        CPS::Domain::EMT);
 

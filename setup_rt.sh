@@ -4,7 +4,6 @@ set -euo pipefail
 # ---------------- CONFIG ----------------
 # Option A: leave empty to auto-pick housekeeping CPUs (CPU 0 + its HT sibling)
 SYSTEM_CPUS="${SYSTEM_CPUS:-}"
-OPEN_GUIS="${OPEN_GUIS:-1}"  # set to 0 to skip GUI launch
 
 # -------------- ROOT CHECK --------------
 if [[ "${EUID:-$(id -u)}" -ne 0 ]]; then
@@ -12,24 +11,9 @@ if [[ "${EUID:-$(id -u)}" -ne 0 ]]; then
   exit 1
 fi
 
-# --------- Detect desktop user (for GUI) ---------
-DESKTOP_USER="${SUDO_USER:-$(logname 2>/dev/null || true)}"
-
-run_as_user() {
-  local cmd="$*"
-  if [[ -n "${DESKTOP_USER:-}" ]]; then
-    sudo -u "${DESKTOP_USER}" env \
-      XDG_RUNTIME_DIR="/run/user/$(id -u "$DESKTOP_USER")" \
-      DISPLAY="${DISPLAY:-:0}" \
-      bash -lc "$cmd" || true
-  fi
-}
-
-# --------- Install helpful tools ----------
+# --------- Install helpful tools (Fedora) ----------
 echo "📦 Ensuring tools are present..."
-export DEBIAN_FRONTEND=noninteractive
-apt-get update -y
-apt-get install -y gnome-system-monitor tuned util-linux linux-tools-common >/dev/null
+dnf -y install tuned util-linux kernel-tools irqbalance >/dev/null
 
 # --------- Disable irqbalance ----------
 systemctl stop irqbalance 2>/dev/null || true
@@ -65,7 +49,7 @@ else
   # Expand user-provided ranges "0-1,4,6-7"
   expand_cpu_list() {
     echo "$1" | tr ',' ' ' | awk -v RS=' ' '
-      function add(a,b){for(i=a;i<=b;i++)printf i" "}
+      function add(a,b){for(i=a;i<=b;i++)printf i" " }
       /^[0-9]+-[0-9]+$/ {split($0,r,"-"); add(r[1],r[2]); next}
       /^[0-9]+$/ {printf $0" "}
     '
@@ -75,7 +59,7 @@ fi
 
 ONLINE_SORTED=$(echo "$ONLINE_CPUS" | tr ' ' '\n' | sed '/^$/d' | LC_ALL=C sort -n | uniq)
 
-# Compute isolated = ONLINE - SYSTEM using awk (no 'comm')
+# Compute isolated = ONLINE - SYSTEM
 ISOLATE_LIST=$(
   awk 'NR==FNR {sys[$1]=1; next} !($1 in sys)' \
     <(printf "%s\n" $SYS_LIST) <(printf "%s\n" $ONLINE_SORTED) \
@@ -128,16 +112,11 @@ Examples:
 EOF
 else
   echo "🧩 Detected legacy cgroup v1. You can use cset (cpuset fs)."
-  echo "   Creating cpuset shield..."
+  echo "   Installing cset and creating cpuset shield..."
+  dnf -y install cpuset >/dev/null || true
   cset shield --reset 2>/dev/null || true
   cset shield --cpu="${ISOLATE_CSV}" --kthread=on
   echo "✅ cpuset shield ready. Use: sudo cset shield --exec -- chrt -f 90 ./your_app"
 fi
 
-# --------- Launch GUI (optional) ----------
-if [[ "${OPEN_GUIS}" -eq 1 && -n "${DESKTOP_USER:-}" ]]; then
-  echo "🟢 Launching GNOME System Monitor..."
-  run_as_user "gnome-system-monitor &>/dev/null &"
-fi
-
-echo "✅ Setup complete."
+echo "✅ Setup complete (Fedora 34 headless)."

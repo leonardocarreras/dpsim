@@ -97,6 +97,8 @@ SystemTopology buildTopology(CommandLineArgs &args,
 
   // Nodes
   auto n1EMT = SimNode<Real>::make("BUS1", PhaseType::ABC);
+  auto nriEMT = SimNode<Real>::make("BUS1", PhaseType::ABC);
+  auto nvrEMT = SimNode<Real>::make("BUS1", PhaseType::ABC);
 
   auto rl = EMT::Ph3::Resistor::make("rl");
   rl->setParameters(CPS::Math::singlePhaseParameterToThreePhase(10));
@@ -110,12 +112,12 @@ SystemTopology buildTopology(CommandLineArgs &args,
 
   rl->connect({n1EMT, SimNode<Real>::GND});
 
-  vs->connect({n1EMT, SimNode<Real>::GND});
-  rvs->connect({n1EMT, SimNode<Real>::GND});
-  ivs->connect({n1EMT, SimNode<Real>::GND});
+  vs->connect({SimNode<Real>::GND, nvrEMT});
+  rvs->connect({nvrEMT, nriEMT});
+  ivs->connect({nriEMT, n1EMT});
   // Create system topology
   auto systemEMT = SystemTopology(50, // System frequency in Hz
-                                  SystemNodeList{n1EMT},
+                                  SystemNodeList{n1EMT, nvrEMT, nriEMT},
                                   SystemComponentList{rl, vs, rvs, ivs});
 
   // Interface
