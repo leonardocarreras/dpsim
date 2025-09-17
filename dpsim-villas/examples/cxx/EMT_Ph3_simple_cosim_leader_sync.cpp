@@ -1,6 +1,7 @@
 #include <DPsim.h>
 
 #include <dpsim-villas/InterfaceVillasQueueless.h>
+#include <dpsim/InterfaceCosimSyncShmem.h>
 
 using namespace DPsim;
 using namespace CPS;
@@ -8,7 +9,7 @@ using namespace CPS;
 const std::string buildVillasConfig(CommandLineArgs &args) {
   std::string signalOutConfig = fmt::format(
       R"STRING("out": {{
-      "name": "/dpsim.follower-to-leader",
+      "name": "/dpsim.leader-to-follower",
       "signals": [{{
         "name": "seq_to_self",
         "type": "integer",
@@ -17,40 +18,6 @@ const std::string buildVillasConfig(CommandLineArgs &args) {
       }},
       {{
         "name": "seq_to_external",
-        "type": "integer",
-        "unit": "",
-        "builtin": false
-      }},
-      {{
-        "name": "IA",
-        "type": "float",
-        "unit": "A",
-        "builtin": false
-      }},
-      {{
-        "name": "IB",
-        "type": "float",
-        "unit": "A",
-        "builtin": false
-      }},
-      {{
-        "name": "IC",
-        "type": "float",
-        "unit": "A",
-        "builtin": false
-      }}]
-    }})STRING");
-  std::string signalInConfig = fmt::format(
-      R"STRING("in": {{
-      "name": "/dpsim.leader-to-follower",
-      "signals": [{{
-        "name": "seq_from_self",
-        "type": "integer",
-        "unit": "",
-        "builtin": false
-      }},
-      {{
-        "name": "seq_from_external",
         "type": "integer",
         "unit": "",
         "builtin": false
@@ -74,6 +41,40 @@ const std::string buildVillasConfig(CommandLineArgs &args) {
         "builtin": false
       }}]
     }})STRING");
+  std::string signalInConfig = fmt::format(
+      R"STRING("in": {{
+      "name": "/dpsim.follower-to-leader",
+      "signals": [{{
+        "name": "seq_from_self",
+        "type": "integer",
+        "unit": "",
+        "builtin": false
+      }},
+      {{
+        "name": "seq_from_external",
+        "type": "integer",
+        "unit": "",
+        "builtin": false
+      }},
+      {{
+        "name": "IA",
+        "type": "float",
+        "unit": "A",
+        "builtin": false
+      }},
+      {{
+        "name": "IB",
+        "type": "float",
+        "unit": "A",
+        "builtin": false
+      }},
+      {{
+        "name": "IC",
+        "type": "float",
+        "unit": "A",
+        "builtin": false
+      }}]
+    }})STRING");
   const std::string config = fmt::format(
       R"STRING({{
     "type": "shmem",
@@ -81,7 +82,7 @@ const std::string buildVillasConfig(CommandLineArgs &args) {
     {}
   }})STRING",
       signalOutConfig, signalInConfig);
-  DPsim::Logger::get("simple_cosim_follower")
+  DPsim::Logger::get("simple_cosim_leader")
       ->info("Config for Node:\n{}", config);
   return config;
 }
@@ -97,27 +98,25 @@ SystemTopology buildTopology(CommandLineArgs &args,
 
   // Nodes
   auto n1EMT = SimNode<Real>::make("BUS1", PhaseType::ABC);
-  auto nvrEMT = SimNode<Real>::make("BUS1", PhaseType::ABC);
 
   auto vl = EMT::Ph3::VoltageSource::make("vl");
   vl->setParameters(
       CPS::Math::singlePhaseVariableToThreePhase(CPS::Math::polar(1000, 0)),
       50);
 
-  auto vs = EMT::Ph3::ControlledVoltageSource::make("vs");
-  vs->setParameters(CPS::Math::singlePhaseParameterToThreePhase(0));
-  auto rvs = EMT::Ph3::Resistor::make("rvs");
-  rvs->setParameters(CPS::Math::singlePhaseParameterToThreePhase(0.01));
+  auto cs = EMT::Ph3::ControlledCurrentSource::make("cs");
+  cs->setParameters(CPS::Math::singlePhaseParameterToThreePhase(0));
+  auto rcs = EMT::Ph3::Resistor::make("rcs");
+  rcs->setParameters(CPS::Math::singlePhaseParameterToThreePhase(1e8));
 
-  vl->connect({n1EMT, SimNode<Real>::GND});
+  vl->connect({SimNode<Real>::GND, n1EMT});
 
-  vs->connect({SimNode<Real>::GND, nvrEMT});
-  rvs->connect({nvrEMT, n1EMT});
-
+  cs->connect({n1EMT, SimNode<Real>::GND});
+  rcs->connect({n1EMT, SimNode<Real>::GND});
   // Create system topology
-  auto systemEMT = SystemTopology(50, // System frequency in Hz
-                                  SystemNodeList{n1EMT, nvrEMT},
-                                  SystemComponentList{vl, vs, rvs});
+  auto systemEMT =
+      SystemTopology(50, // System frequency in Hz
+                     SystemNodeList{n1EMT}, SystemComponentList{vl, cs, rcs});
 
   // Interface
   auto inFromExternal_SeqExternalAttribute = CPS::AttributeStatic<Int>::make(0);
@@ -136,26 +135,26 @@ SystemTopology buildTopology(CommandLineArgs &args,
           CPS::UpdateTaskKind::UPDATE_ON_GET, *updateFn,
           inFromExternal_SeqDPsimAttribute));
 
-  intf->addImport(inFromExternal_SeqExternalAttribute, true, true);
-  intf->addImport(inFromExternal_SeqDPsimAttribute, true, true);
-  intf->addImport(vs->mVoltageRef->deriveCoeff<Real>(0, 0), true, true);
-  intf->addImport(vs->mVoltageRef->deriveCoeff<Real>(1, 0), true, true);
-  intf->addImport(vs->mVoltageRef->deriveCoeff<Real>(2, 0), true, true);
+  intf->addImport(inFromExternal_SeqExternalAttribute, false, false);
+  intf->addImport(inFromExternal_SeqDPsimAttribute, false, false);
+  intf->addImport(cs->mCurrentRef->deriveCoeff<Real>(0, 0), false, false);
+  intf->addImport(cs->mCurrentRef->deriveCoeff<Real>(1, 0), false, false);
+  intf->addImport(cs->mCurrentRef->deriveCoeff<Real>(2, 0), false, false);
 
   intf->addExport(outToExternal_SeqDPsimAttribute);
   intf->addExport(inFromExternal_SeqExternalAttribute);
-  intf->addExport(rvs->mIntfCurrent->deriveCoeff<Real>(0, 0));
-  intf->addExport(rvs->mIntfCurrent->deriveCoeff<Real>(1, 0));
-  intf->addExport(rvs->mIntfCurrent->deriveCoeff<Real>(2, 0));
+  intf->addExport(n1EMT->mVoltage->deriveCoeff<Real>(0, 0));
+  intf->addExport(n1EMT->mVoltage->deriveCoeff<Real>(1, 0));
+  intf->addExport(n1EMT->mVoltage->deriveCoeff<Real>(2, 0));
 
   // Logger
   if (logger) {
     logger->logAttribute("a", n1EMT->mVoltage->deriveCoeff<Real>(0, 0));
     logger->logAttribute("b", n1EMT->mVoltage->deriveCoeff<Real>(1, 0));
     logger->logAttribute("c", n1EMT->mVoltage->deriveCoeff<Real>(2, 0));
-    logger->logAttribute("a_i", rvs->mIntfCurrent->deriveCoeff<Real>(0, 0));
-    logger->logAttribute("b_i", rvs->mIntfCurrent->deriveCoeff<Real>(1, 0));
-    logger->logAttribute("c_i", rvs->mIntfCurrent->deriveCoeff<Real>(2, 0));
+    logger->logAttribute("a_i", cs->mIntfCurrent->deriveCoeff<Real>(0, 0));
+    logger->logAttribute("b_i", cs->mIntfCurrent->deriveCoeff<Real>(1, 0));
+    logger->logAttribute("c_i", cs->mIntfCurrent->deriveCoeff<Real>(2, 0));
   }
 
   systemEMT.renderToFile("logs/" + simNameEMT + ".svg");
@@ -164,7 +163,7 @@ SystemTopology buildTopology(CommandLineArgs &args,
 }
 
 int main(int argc, char *argv[]) {
-  CommandLineArgs args(argc, argv, "EMT_3Ph_simple_cosim_follower_v2", 0.01,
+  CommandLineArgs args(argc, argv, "EMT_3Ph_simple_cosim_leader_sync", 0.01,
                        1 * 60, 50, -1, CPS::Logger::Level::info,
                        CPS::Logger::Level::off, false, false, false,
                        CPS::Domain::EMT);
@@ -173,8 +172,21 @@ int main(int argc, char *argv[]) {
   bool log = args.options.find("log") != args.options.end() &&
              args.getOptionBool("log");
 
-  auto intf = std::make_shared<InterfaceVillasQueueless>(
+  // Data exchange via VILLAS shared memory
+  auto villasIntf = std::make_shared<InterfaceVillasQueueless>(
       buildVillasConfig(args), "VillasInterface", spdlog::level::off);
+
+  // New cosim sync interface (shared memory) for absolute start and config
+  std::string shmName = "/dpsim_sync_case";
+  if (const char *env = std::getenv("DPSIM_SYNC_SHM")) {
+    shmName = env;
+  }
+  if (args.options.find("shm") != args.options.end()) {
+    shmName = args.getOptionString("shm");
+  }
+  auto syncIntf = std::make_shared<InterfaceCosimSyncShmem>(
+      "CosimSync", shmName, InterfaceCosimSyncShmem::Role::Leader);
+  syncIntf->open();
 
   std::filesystem::path logFilename =
       "logs/" + args.name + "/" + args.name + ".csv";
@@ -184,25 +196,63 @@ int main(int argc, char *argv[]) {
         RealTimeDataLogger::make(logFilename, args.duration, args.timeStep);
   }
 
-  auto sys = buildTopology(args, intf, logger);
+  auto sys = buildTopology(args, villasIntf, logger);
 
   RealTimeSimulation sim(args.name, args);
-  //Simulation sim(args.name, args);
   sim.setSystem(sys);
-  sim.addInterface(intf);
+  sim.addInterface(villasIntf);
   sim.setDomain(Domain::EMT);
   sim.doSystemMatrixRecomputation(true);
   sim.setLogStepTimes(true);
-  if (log) {
-    sim.addLogger(logger);
+  // Default drop config; allow override via -o drop= and -o drop_threshold=
+  bool dropEnabled = true;
+  double dropThreshold = 0.95;
+  if (args.options.find("drop") != args.options.end()) {
+    try {
+      dropEnabled = args.getOptionBool("drop");
+    } catch (...) {
+    }
   }
+  if (args.options.find("drop_threshold") != args.options.end()) {
+    try {
+      dropThreshold = args.getOptionReal("drop_threshold");
+    } catch (...) {
+    }
+  }
+  sim.setDropEnabled(dropEnabled);
+  sim.setDropThreshold(dropThreshold);
+  if (logger)
+    sim.addLogger(logger);
   if (args.options.find("threads") != args.options.end()) {
     auto numThreads = args.getOptionInt("threads");
     sim.setScheduler(std::make_shared<OpenMPLevelScheduler>(numThreads));
   }
-  auto startIn = std::chrono::seconds(5);
-  sim.run(startIn);
-  //sim.run();
+
+  auto startAt = std::chrono::system_clock::now() + std::chrono::seconds(5);
+  // Sanity check: start time must be in the future; warn if > 1h away
+  {
+    using namespace std::chrono;
+    auto now = system_clock::now();
+    auto delta = startAt - now;
+    double secs = duration_cast<duration<double>>(delta).count();
+    if (secs < 0) {
+      CPS::Logger::get(args.name)->error(
+          "Start time is in the past by {} s. Aborting.", secs);
+      return 1;
+    }
+    if (secs > 3600.0) {
+      CPS::Logger::get(args.name)->warn(
+          "Start time is more than 1 hour away ({} s).", secs);
+    }
+  }
+  uint64_t dt_ns = static_cast<uint64_t>(args.timeStep * 1e9);
+  uint64_t dur_ns = static_cast<uint64_t>(args.duration * 1e9);
+  syncIntf->publishConfig(startAt, dt_ns, dur_ns);
+  CPS::Logger::get(args.name)->info(
+      "Published sync to {} (dt_ns={}, duration_ns={})", shmName, dt_ns,
+      dur_ns);
+
+  sim.run(startAt);
 
   sim.logStepTimes(args.name + "_step_times");
   sim.checkForOverruns(args.name + "_overruns");

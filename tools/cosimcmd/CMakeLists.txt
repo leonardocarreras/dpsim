@@ -5,6 +5,7 @@ src/main.cpp
 set(COSIM_SOURCES
 ${CMAKE_SOURCE_DIR}/dpsim-villas/examples/cxx/EMT_Ph3_simple_cosim_leader_v2_sync.cpp
 ${CMAKE_SOURCE_DIR}/dpsim-villas/examples/cxx/EMT_Ph3_simple_cosim_follower_v2_sync.cpp
+${CMAKE_SOURCE_DIR}/dpsim-villas/examples/cxx/EMT_Ph3_simple_cosim_baseline.cpp
 )
 
 add_executable(cosimcmd ${COSIMCMD_SOURCES})

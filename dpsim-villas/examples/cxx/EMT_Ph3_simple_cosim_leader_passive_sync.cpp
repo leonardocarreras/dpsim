@@ -6,7 +6,7 @@
 using namespace DPsim;
 using namespace CPS;
 
-static const std::string buildVillasConfig(CommandLineArgs &args) {
+const std::string buildVillasConfig(CommandLineArgs &args) {
   std::string signalOutConfig = fmt::format(
       R"STRING("out": {{
       "name": "/dpsim.follower-to-leader",
@@ -82,26 +82,27 @@ static const std::string buildVillasConfig(CommandLineArgs &args) {
     {}
   }})STRING",
       signalOutConfig, signalInConfig);
-  DPsim::Logger::get("simple_cosim_follower_v2_sync")
+  DPsim::Logger::get("simple_cosim_follower")
       ->info("Config for Node:\n{}", config);
   return config;
 }
 
-static SystemTopology
-buildTopology(CommandLineArgs &args, std::shared_ptr<Interface> intf,
-              std::shared_ptr<DataLoggerInterface> logger) {
+SystemTopology buildTopology(CommandLineArgs &args,
+                             std::shared_ptr<Interface> intf,
+                             std::shared_ptr<DataLoggerInterface> logger) {
+
   String simName = args.name;
-  String simNameEMT = simName + std::string("_EMT");
+
+  String simNameEMT = simName + "_EMT";
   CPS::Logger::setLogDir("logs/" + simNameEMT);
 
+  // Nodes
   auto n1EMT = SimNode<Real>::make("BUS1", PhaseType::ABC);
   auto nriEMT = SimNode<Real>::make("BUS1", PhaseType::ABC);
   auto nvrEMT = SimNode<Real>::make("BUS1", PhaseType::ABC);
 
-  auto vl = EMT::Ph3::VoltageSource::make("vl");
-  vl->setParameters(
-      CPS::Math::singlePhaseVariableToThreePhase(CPS::Math::polar(1000, 0)),
-      50);
+  auto rl = EMT::Ph3::Resistor::make("rl");
+  rl->setParameters(CPS::Math::singlePhaseParameterToThreePhase(10));
 
   auto vs = EMT::Ph3::ControlledVoltageSource::make("vs");
   vs->setParameters(CPS::Math::singlePhaseParameterToThreePhase(0));
@@ -110,16 +111,20 @@ buildTopology(CommandLineArgs &args, std::shared_ptr<Interface> intf,
   auto ivs = EMT::Ph3::Inductor::make("ivs");
   ivs->setParameters(CPS::Math::singlePhaseParameterToThreePhase(0.01));
 
-  vl->connect({n1EMT, SimNode<Real>::GND});
+  rl->connect({n1EMT, SimNode<Real>::GND});
+
   vs->connect({SimNode<Real>::GND, nvrEMT});
   rvs->connect({nvrEMT, nriEMT});
   ivs->connect({nriEMT, n1EMT});
+  // Create system topology
+  auto systemEMT = SystemTopology(50, // System frequency in Hz
+                                  SystemNodeList{n1EMT, nvrEMT, nriEMT},
+                                  SystemComponentList{rl, vs, rvs, ivs});
 
-  auto systemEMT = SystemTopology(50, SystemNodeList{n1EMT, nvrEMT, nriEMT},
-                                  SystemComponentList{vl, vs, rvs, ivs});
-
+  // Interface
   auto inFromExternal_SeqExternalAttribute = CPS::AttributeStatic<Int>::make(0);
   auto inFromExternal_SeqDPsimAttribute = CPS::AttributeStatic<Int>::make(0);
+
   auto outToExternal_SeqDPsimAttribute = CPS::AttributeDynamic<Int>::make(0);
 
   auto updateFn = std::make_shared<CPS::AttributeUpdateTask<Int, Int>::Actor>(
@@ -145,6 +150,7 @@ buildTopology(CommandLineArgs &args, std::shared_ptr<Interface> intf,
   intf->addExport(rvs->mIntfCurrent->deriveCoeff<Real>(1, 0));
   intf->addExport(rvs->mIntfCurrent->deriveCoeff<Real>(2, 0));
 
+  // Logger
   if (logger) {
     logger->logAttribute("a", n1EMT->mVoltage->deriveCoeff<Real>(0, 0));
     logger->logAttribute("b", n1EMT->mVoltage->deriveCoeff<Real>(1, 0));
@@ -158,11 +164,12 @@ buildTopology(CommandLineArgs &args, std::shared_ptr<Interface> intf,
   }
 
   systemEMT.renderToFile("logs/" + simNameEMT + ".svg");
+
   return systemEMT;
 }
 
 int main(int argc, char *argv[]) {
-  CommandLineArgs args(argc, argv, "EMT_3Ph_simple_cosim_follower_v2_sync",
+  CommandLineArgs args(argc, argv, "EMT_3Ph_simple_cosim_leader_passive_sync",
                        0.01, 1 * 60, 50, -1, CPS::Logger::Level::info,
                        CPS::Logger::Level::off, false, false, false,
                        CPS::Domain::EMT);
@@ -171,9 +178,11 @@ int main(int argc, char *argv[]) {
   bool log = args.options.find("log") != args.options.end() &&
              args.getOptionBool("log");
 
+  // Data exchange via VILLAS shared memory
   auto villasIntf = std::make_shared<InterfaceVillasQueueless>(
       buildVillasConfig(args), "VillasInterface", spdlog::level::off);
 
+  // New cosim sync interface (shared memory) for absolute start and config
   std::string shmName = "/dpsim_sync_case";
   if (const char *env = std::getenv("DPSIM_SYNC_SHM")) {
     shmName = env;
@@ -182,21 +191,8 @@ int main(int argc, char *argv[]) {
     shmName = args.getOptionString("shm");
   }
   auto syncIntf = std::make_shared<InterfaceCosimSyncShmem>(
-      "CosimSync", shmName, InterfaceCosimSyncShmem::Role::Follower);
+      "CosimSync", shmName, InterfaceCosimSyncShmem::Role::Leader);
   syncIntf->open();
-
-  InterfaceCosimSyncShmem::ConfigNs cfg;
-  bool ok = syncIntf->waitForConfig(cfg, 10000);
-  if (!ok) {
-    CPS::Logger::get(args.name)->error("Timed out waiting for leader config");
-    return 1;
-  }
-  CPS::Logger::get(args.name)->info(
-      "Received sync from {} (dt_ns={}, duration_ns={})", shmName,
-      cfg.time_step_ns, cfg.duration_ns);
-  args.timeStep = static_cast<double>(cfg.time_step_ns) / 1e9;
-  args.duration = static_cast<double>(cfg.duration_ns) / 1e9;
-  auto startAt = InterfaceCosimSyncShmem::toTimePoint(cfg.start_time_ns);
 
   std::filesystem::path logFilename =
       "logs/" + args.name + "/" + args.name + ".csv";
@@ -214,6 +210,7 @@ int main(int argc, char *argv[]) {
   sim.setDomain(Domain::EMT);
   sim.doSystemMatrixRecomputation(true);
   sim.setLogStepTimes(true);
+  // Default drop config; allow override via -o drop= and -o drop_threshold=
   bool dropEnabled = true;
   double dropThreshold = 0.95;
   if (args.options.find("drop") != args.options.end()) {
@@ -236,8 +233,8 @@ int main(int argc, char *argv[]) {
     auto numThreads = args.getOptionInt("threads");
     sim.setScheduler(std::make_shared<OpenMPLevelScheduler>(numThreads));
   }
-  sim.setTimeStep(args.timeStep);
-  sim.setFinalTime(args.duration);
+
+  auto startAt = std::chrono::system_clock::now() + std::chrono::seconds(5);
   // Sanity check: start time must be in the future; warn if > 1h away
   {
     using namespace std::chrono;
@@ -254,6 +251,13 @@ int main(int argc, char *argv[]) {
           "Start time is more than 1 hour away ({} s).", secs);
     }
   }
+  uint64_t dt_ns = static_cast<uint64_t>(args.timeStep * 1e9);
+  uint64_t dur_ns = static_cast<uint64_t>(args.duration * 1e9);
+  syncIntf->publishConfig(startAt, dt_ns, dur_ns);
+  CPS::Logger::get(args.name)->info(
+      "Published sync to {} (dt_ns={}, duration_ns={})", shmName, dt_ns,
+      dur_ns);
+
   sim.run(startAt);
 
   sim.logStepTimes(args.name + "_step_times");
