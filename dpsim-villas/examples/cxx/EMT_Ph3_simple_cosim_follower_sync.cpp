@@ -6,7 +6,7 @@
 using namespace DPsim;
 using namespace CPS;
 
-static const std::string buildVillasConfig(CommandLineArgs &args) {
+const std::string buildVillasConfig(CommandLineArgs &args) {
   std::string signalOutConfig = fmt::format(
       R"STRING("out": {{
       "name": "/dpsim.follower-to-leader",
@@ -82,26 +82,27 @@ static const std::string buildVillasConfig(CommandLineArgs &args) {
     {}
   }})STRING",
       signalOutConfig, signalInConfig);
-  DPsim::Logger::get("simple_cosim_follower_v2_sync")
+  DPsim::Logger::get("simple_cosim_follower")
       ->info("Config for Node:\n{}", config);
   return config;
 }
 
-static SystemTopology
-buildTopology(CommandLineArgs &args, std::shared_ptr<Interface> intf,
-              std::shared_ptr<DataLoggerInterface> logger) {
+SystemTopology buildTopology(CommandLineArgs &args,
+                             std::shared_ptr<Interface> intf,
+                             std::shared_ptr<DataLoggerInterface> logger) {
+
   String simName = args.name;
-  String simNameEMT = simName + std::string("_EMT");
+
+  String simNameEMT = simName + "_EMT";
   CPS::Logger::setLogDir("logs/" + simNameEMT);
 
+  // Nodes
   auto n1EMT = SimNode<Real>::make("BUS1", PhaseType::ABC);
   auto nriEMT = SimNode<Real>::make("BUS1", PhaseType::ABC);
   auto nvrEMT = SimNode<Real>::make("BUS1", PhaseType::ABC);
 
-  auto vl = EMT::Ph3::VoltageSource::make("vl");
-  vl->setParameters(
-      CPS::Math::singlePhaseVariableToThreePhase(CPS::Math::polar(1000, 0)),
-      50);
+  auto rl = EMT::Ph3::Resistor::make("rl");
+  rl->setParameters(CPS::Math::singlePhaseParameterToThreePhase(10));
 
   auto vs = EMT::Ph3::ControlledVoltageSource::make("vs");
   vs->setParameters(CPS::Math::singlePhaseParameterToThreePhase(0));
@@ -110,16 +111,20 @@ buildTopology(CommandLineArgs &args, std::shared_ptr<Interface> intf,
   auto ivs = EMT::Ph3::Inductor::make("ivs");
   ivs->setParameters(CPS::Math::singlePhaseParameterToThreePhase(0.01));
 
-  vl->connect({n1EMT, SimNode<Real>::GND});
+  rl->connect({n1EMT, SimNode<Real>::GND});
+
   vs->connect({SimNode<Real>::GND, nvrEMT});
   rvs->connect({nvrEMT, nriEMT});
   ivs->connect({nriEMT, n1EMT});
+  // Create system topology
+  auto systemEMT = SystemTopology(50, // System frequency in Hz
+                                  SystemNodeList{n1EMT, nvrEMT, nriEMT},
+                                  SystemComponentList{rl, vs, rvs, ivs});
 
-  auto systemEMT = SystemTopology(50, SystemNodeList{n1EMT, nvrEMT, nriEMT},
-                                  SystemComponentList{vl, vs, rvs, ivs});
-
+  // Interface
   auto inFromExternal_SeqExternalAttribute = CPS::AttributeStatic<Int>::make(0);
   auto inFromExternal_SeqDPsimAttribute = CPS::AttributeStatic<Int>::make(0);
+
   auto outToExternal_SeqDPsimAttribute = CPS::AttributeDynamic<Int>::make(0);
 
   auto updateFn = std::make_shared<CPS::AttributeUpdateTask<Int, Int>::Actor>(
@@ -145,6 +150,7 @@ buildTopology(CommandLineArgs &args, std::shared_ptr<Interface> intf,
   intf->addExport(rvs->mIntfCurrent->deriveCoeff<Real>(1, 0));
   intf->addExport(rvs->mIntfCurrent->deriveCoeff<Real>(2, 0));
 
+  // Logger
   if (logger) {
     logger->logAttribute("a", n1EMT->mVoltage->deriveCoeff<Real>(0, 0));
     logger->logAttribute("b", n1EMT->mVoltage->deriveCoeff<Real>(1, 0));
@@ -158,12 +164,13 @@ buildTopology(CommandLineArgs &args, std::shared_ptr<Interface> intf,
   }
 
   systemEMT.renderToFile("logs/" + simNameEMT + ".svg");
+
   return systemEMT;
 }
 
 int main(int argc, char *argv[]) {
-  CommandLineArgs args(argc, argv, "EMT_3Ph_simple_cosim_follower_v2_sync",
-                       0.01, 1 * 60, 50, -1, CPS::Logger::Level::info,
+  CommandLineArgs args(argc, argv, "EMT_3Ph_simple_cosim_follower_sync", 0.01,
+                       1 * 60, 50, -1, CPS::Logger::Level::info,
                        CPS::Logger::Level::off, false, false, false,
                        CPS::Domain::EMT);
 

@@ -6,10 +6,10 @@
 using namespace DPsim;
 using namespace CPS;
 
-static const std::string buildVillasConfig(CommandLineArgs &args) {
+const std::string buildVillasConfig(CommandLineArgs &args) {
   std::string signalOutConfig = fmt::format(
       R"STRING("out": {{
-      "name": "/dpsim.follower-to-leader",
+      "name": "/dpsim.leader-to-follower",
       "signals": [{{
         "name": "seq_to_self",
         "type": "integer",
@@ -18,40 +18,6 @@ static const std::string buildVillasConfig(CommandLineArgs &args) {
       }},
       {{
         "name": "seq_to_external",
-        "type": "integer",
-        "unit": "",
-        "builtin": false
-      }},
-      {{
-        "name": "IA",
-        "type": "float",
-        "unit": "A",
-        "builtin": false
-      }},
-      {{
-        "name": "IB",
-        "type": "float",
-        "unit": "A",
-        "builtin": false
-      }},
-      {{
-        "name": "IC",
-        "type": "float",
-        "unit": "A",
-        "builtin": false
-      }}]
-    }})STRING");
-  std::string signalInConfig = fmt::format(
-      R"STRING("in": {{
-      "name": "/dpsim.leader-to-follower",
-      "signals": [{{
-        "name": "seq_from_self",
-        "type": "integer",
-        "unit": "",
-        "builtin": false
-      }},
-      {{
-        "name": "seq_from_external",
         "type": "integer",
         "unit": "",
         "builtin": false
@@ -75,6 +41,40 @@ static const std::string buildVillasConfig(CommandLineArgs &args) {
         "builtin": false
       }}]
     }})STRING");
+  std::string signalInConfig = fmt::format(
+      R"STRING("in": {{
+      "name": "/dpsim.follower-to-leader",
+      "signals": [{{
+        "name": "seq_from_self",
+        "type": "integer",
+        "unit": "",
+        "builtin": false
+      }},
+      {{
+        "name": "seq_from_external",
+        "type": "integer",
+        "unit": "",
+        "builtin": false
+      }},
+      {{
+        "name": "IA",
+        "type": "float",
+        "unit": "A",
+        "builtin": false
+      }},
+      {{
+        "name": "IB",
+        "type": "float",
+        "unit": "A",
+        "builtin": false
+      }},
+      {{
+        "name": "IC",
+        "type": "float",
+        "unit": "A",
+        "builtin": false
+      }}]
+    }})STRING");
   const std::string config = fmt::format(
       R"STRING({{
     "type": "shmem",
@@ -82,44 +82,46 @@ static const std::string buildVillasConfig(CommandLineArgs &args) {
     {}
   }})STRING",
       signalOutConfig, signalInConfig);
-  DPsim::Logger::get("simple_cosim_follower_v2_sync")
+  DPsim::Logger::get("simple_cosim_leader")
       ->info("Config for Node:\n{}", config);
   return config;
 }
 
-static SystemTopology
-buildTopology(CommandLineArgs &args, std::shared_ptr<Interface> intf,
-              std::shared_ptr<DataLoggerInterface> logger) {
+SystemTopology buildTopology(CommandLineArgs &args,
+                             std::shared_ptr<Interface> intf,
+                             std::shared_ptr<DataLoggerInterface> logger) {
+
   String simName = args.name;
-  String simNameEMT = simName + std::string("_EMT");
+
+  String simNameEMT = simName + "_EMT";
   CPS::Logger::setLogDir("logs/" + simNameEMT);
 
+  // Nodes
   auto n1EMT = SimNode<Real>::make("BUS1", PhaseType::ABC);
-  auto nriEMT = SimNode<Real>::make("BUS1", PhaseType::ABC);
-  auto nvrEMT = SimNode<Real>::make("BUS1", PhaseType::ABC);
 
   auto vl = EMT::Ph3::VoltageSource::make("vl");
   vl->setParameters(
       CPS::Math::singlePhaseVariableToThreePhase(CPS::Math::polar(1000, 0)),
       50);
 
-  auto vs = EMT::Ph3::ControlledVoltageSource::make("vs");
-  vs->setParameters(CPS::Math::singlePhaseParameterToThreePhase(0));
-  auto rvs = EMT::Ph3::Resistor::make("rvs");
-  rvs->setParameters(CPS::Math::singlePhaseParameterToThreePhase(0.1));
-  auto ivs = EMT::Ph3::Inductor::make("ivs");
-  ivs->setParameters(CPS::Math::singlePhaseParameterToThreePhase(0.01));
+  auto cs = EMT::Ph3::ControlledCurrentSource::make("cs");
+  cs->setParameters(CPS::Math::singlePhaseParameterToThreePhase(0));
+  auto rcs = EMT::Ph3::Resistor::make("rcs");
+  rcs->setParameters(CPS::Math::singlePhaseParameterToThreePhase(1e8));
 
-  vl->connect({n1EMT, SimNode<Real>::GND});
-  vs->connect({SimNode<Real>::GND, nvrEMT});
-  rvs->connect({nvrEMT, nriEMT});
-  ivs->connect({nriEMT, n1EMT});
+  vl->connect({SimNode<Real>::GND, n1EMT});
 
-  auto systemEMT = SystemTopology(50, SystemNodeList{n1EMT, nvrEMT, nriEMT},
-                                  SystemComponentList{vl, vs, rvs, ivs});
+  cs->connect({n1EMT, SimNode<Real>::GND});
+  rcs->connect({n1EMT, SimNode<Real>::GND});
+  // Create system topology
+  auto systemEMT =
+      SystemTopology(50, // System frequency in Hz
+                     SystemNodeList{n1EMT}, SystemComponentList{vl, cs, rcs});
 
+  // Interface
   auto inFromExternal_SeqExternalAttribute = CPS::AttributeStatic<Int>::make(0);
   auto inFromExternal_SeqDPsimAttribute = CPS::AttributeStatic<Int>::make(0);
+
   auto outToExternal_SeqDPsimAttribute = CPS::AttributeDynamic<Int>::make(0);
 
   auto updateFn = std::make_shared<CPS::AttributeUpdateTask<Int, Int>::Actor>(
@@ -133,36 +135,35 @@ buildTopology(CommandLineArgs &args, std::shared_ptr<Interface> intf,
           CPS::UpdateTaskKind::UPDATE_ON_GET, *updateFn,
           inFromExternal_SeqDPsimAttribute));
 
-  intf->addImport(inFromExternal_SeqExternalAttribute, true, true);
-  intf->addImport(inFromExternal_SeqDPsimAttribute, true, true);
-  intf->addImport(vs->mVoltageRef->deriveCoeff<Real>(0, 0), true, true);
-  intf->addImport(vs->mVoltageRef->deriveCoeff<Real>(1, 0), true, true);
-  intf->addImport(vs->mVoltageRef->deriveCoeff<Real>(2, 0), true, true);
+  intf->addImport(inFromExternal_SeqExternalAttribute, false, false);
+  intf->addImport(inFromExternal_SeqDPsimAttribute, false, false);
+  intf->addImport(cs->mCurrentRef->deriveCoeff<Real>(0, 0), false, false);
+  intf->addImport(cs->mCurrentRef->deriveCoeff<Real>(1, 0), false, false);
+  intf->addImport(cs->mCurrentRef->deriveCoeff<Real>(2, 0), false, false);
 
   intf->addExport(outToExternal_SeqDPsimAttribute);
   intf->addExport(inFromExternal_SeqExternalAttribute);
-  intf->addExport(rvs->mIntfCurrent->deriveCoeff<Real>(0, 0));
-  intf->addExport(rvs->mIntfCurrent->deriveCoeff<Real>(1, 0));
-  intf->addExport(rvs->mIntfCurrent->deriveCoeff<Real>(2, 0));
+  intf->addExport(n1EMT->mVoltage->deriveCoeff<Real>(0, 0));
+  intf->addExport(n1EMT->mVoltage->deriveCoeff<Real>(1, 0));
+  intf->addExport(n1EMT->mVoltage->deriveCoeff<Real>(2, 0));
 
+  // Logger
   if (logger) {
     logger->logAttribute("a", n1EMT->mVoltage->deriveCoeff<Real>(0, 0));
     logger->logAttribute("b", n1EMT->mVoltage->deriveCoeff<Real>(1, 0));
     logger->logAttribute("c", n1EMT->mVoltage->deriveCoeff<Real>(2, 0));
-    logger->logAttribute("ax", nvrEMT->mVoltage->deriveCoeff<Real>(0, 0));
-    logger->logAttribute("bx", nvrEMT->mVoltage->deriveCoeff<Real>(1, 0));
-    logger->logAttribute("cx", nvrEMT->mVoltage->deriveCoeff<Real>(2, 0));
-    logger->logAttribute("a_i", rvs->mIntfCurrent->deriveCoeff<Real>(0, 0));
-    logger->logAttribute("b_i", rvs->mIntfCurrent->deriveCoeff<Real>(1, 0));
-    logger->logAttribute("c_i", rvs->mIntfCurrent->deriveCoeff<Real>(2, 0));
+    logger->logAttribute("a_i", cs->mIntfCurrent->deriveCoeff<Real>(0, 0));
+    logger->logAttribute("b_i", cs->mIntfCurrent->deriveCoeff<Real>(1, 0));
+    logger->logAttribute("c_i", cs->mIntfCurrent->deriveCoeff<Real>(2, 0));
   }
 
   systemEMT.renderToFile("logs/" + simNameEMT + ".svg");
+
   return systemEMT;
 }
 
 int main(int argc, char *argv[]) {
-  CommandLineArgs args(argc, argv, "EMT_3Ph_simple_cosim_follower_v2_sync",
+  CommandLineArgs args(argc, argv, "EMT_3Ph_simple_cosim_follower_active_sync",
                        0.01, 1 * 60, 50, -1, CPS::Logger::Level::info,
                        CPS::Logger::Level::off, false, false, false,
                        CPS::Domain::EMT);
