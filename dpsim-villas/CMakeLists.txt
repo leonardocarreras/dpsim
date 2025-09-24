@@ -32,7 +32,7 @@ target_sources(dpsim-villas PUBLIC
 
 if (WITH_OPENMP AND TARGET OpenMP::OpenMP_CXX)
 	target_link_libraries(dpsim-villas PUBLIC OpenMP::OpenMP_CXX)
-	starget_compile_definitions(dpsim-villas PUBLIC DPSIM_WITH_OPENMP)
+	target_compile_definitions(dpsim-villas PUBLIC DPSIM_WITH_OPENMP)
 endif()
 
 install(TARGETS dpsim-villas
