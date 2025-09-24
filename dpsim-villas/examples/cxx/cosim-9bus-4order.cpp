@@ -114,7 +114,7 @@ const std::string buildFpgaConfig(CommandLineArgs &args) {
     {}
   }})STRING",
       cardConfig, signalOutConfig, signalInConfig);
-  DPsim::Logger::get("cosim-9bus-4order")
+  DPsim::Logger::get("FpgaCosim3PhNineBus")
       ->debug("Config for Node:\n{}", config);
   return config;
 }
@@ -664,11 +664,12 @@ SystemTopology buildTopology(CommandLineArgs &args,
                                            CPS::UpdateTaskKind::UPDATE_ON_GET,
                                            *updateFn,
                                            inFromRTDS_SeqDPsimAttribute));
-  // auto seqNumForRTDS = CPS::AttributeDynamic<Int>::make(0);
-  // seqNumForRTDS->addTask(CPS::UpdateTaskKind::UPDATE_ON_GET,
-  //                        CPS::AttributeUpdateTask<Int, Int>::make(
-  //                            CPS::UpdateTaskKind::UPDATE_ON_GET, *updateFn,
-  //                            seqFromDPsimAttribute));
+
+  auto seqNumForRTDS = CPS::AttributeDynamic<Int>::make(0);
+  seqNumForRTDS->addTask(CPS::UpdateTaskKind::UPDATE_ON_GET,
+                         CPS::AttributeUpdateTask<Int, Int>::make(
+                             CPS::UpdateTaskKind::UPDATE_ON_GET, *updateFn,
+                             inFromRTDS_SeqDPsimAttribute));
 
   intfFpga->addImport(inFromRTDS_SeqRTDSAttribute, true, true);
   intfFpga->addImport(inFromRTDS_SeqDPsimAttribute, true, true);
@@ -681,7 +682,7 @@ SystemTopology buildTopology(CommandLineArgs &args,
   intfFpga->addExport(n6EMT->mVoltage->deriveCoeff<Real>(0, 0));
   intfFpga->addExport(n6EMT->mVoltage->deriveCoeff<Real>(1, 0));
   intfFpga->addExport(n6EMT->mVoltage->deriveCoeff<Real>(2, 0));
-  //intfFpga->addExport(seqNumForRTDS);
+  intfFpga->addExport(seqNumForRTDS);
 
   // Logger
   if (logger) {
@@ -700,9 +701,14 @@ SystemTopology buildTopology(CommandLineArgs &args,
 }
 
 int main(int argc, char *argv[]) {
-  CommandLineArgs args(argc, argv, "cosim-9bus-4order", 0.01, 10 * 60, 50., -1,
-                       CPS::Logger::Level::info, CPS::Logger::Level::off, false,
-                       false, false, CPS::Domain::EMT);
+  CommandLineArgs args(argc, argv, "cosim-9bus-4order", 0.01, 10 * 60,
+                       ninebus.nomFreq, -1, CPS::Logger::Level::info,
+                       CPS::Logger::Level::off, false, false, false,
+                       CPS::Domain::EMT);
+
+  std::error_code ec;
+  std::filesystem::create_directories("./logs", ec);
+
   CPS::Logger::setLogDir("logs/" + args.name);
   bool log = args.options.find("log") != args.options.end() &&
              args.getOptionBool("log");
@@ -710,8 +716,7 @@ int main(int argc, char *argv[]) {
   auto intfFpga = std::make_shared<InterfaceVillasQueueless>(
       buildFpgaConfig(args), "FpgaInterface", spdlog::level::off);
 
-  std::filesystem::path logFilename =
-      "logs/" + args.name + "/cosim-9bus-4order.csv";
+  std::filesystem::path logFilename = args.name;
   std::shared_ptr<DataLoggerInterface> logger = nullptr;
   if (log) {
     logger =
@@ -729,6 +734,10 @@ int main(int argc, char *argv[]) {
   sim.checkForOverruns(args.name + "_overruns");
   if (log) {
     sim.addLogger(logger);
+  }
+  if (args.options.find("threads") != args.options.end()) {
+    auto numThreads = args.getOptionInt("threads");
+    sim.setScheduler(std::make_shared<OpenMPLevelScheduler>(numThreads));
   }
   sim.run();
 

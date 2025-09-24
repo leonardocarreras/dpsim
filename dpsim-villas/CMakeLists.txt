@@ -30,6 +30,11 @@ target_sources(dpsim-villas PUBLIC
 	FILES "${HEADER_FILES}"
 )
 
+if (WITH_OPENMP AND TARGET OpenMP::OpenMP_CXX)
+	target_link_libraries(dpsim-villas PUBLIC OpenMP::OpenMP_CXX)
+	starget_compile_definitions(dpsim-villas PUBLIC DPSIM_WITH_OPENMP)
+endif()
+
 install(TARGETS dpsim-villas
 	EXPORT dpsim-villas
 	FILE_SET public_headers DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}

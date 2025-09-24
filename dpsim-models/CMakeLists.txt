@@ -26,6 +26,11 @@ target_sources(dpsim-models PUBLIC
 	FILES "${HEADER_FILES}"
 )
 
+if (WITH_OPENMP AND TARGET OpenMP::OpenMP_CXX)
+	list(APPEND MODELS_LIBRARIES OpenMP::OpenMP_CXX)
+	target_compile_definitions(dpsim-models PUBLIC DPSIM_WITH_OPENMP)
+endif()
+
 install(TARGETS dpsim-models
 	EXPORT dpsim-models
 	FILE_SET public_headers DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}

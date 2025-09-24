@@ -28,6 +28,19 @@ target_sources(dpsim PUBLIC
 	FILES "${HEADER_FILES}"
 )
 
+# Enable OpenMP on the core library (and expose a define).
+if (WITH_OPENMP AND TARGET OpenMP::OpenMP_CXX)
+	target_link_libraries(dpsim PUBLIC OpenMP::OpenMP_CXX)
+	target_compile_definitions(dpsim PUBLIC DPSIM_WITH_OPENMP)
+endif()
+
+if (WITH_OPENMP AND TARGET OpenMP::OpenMP_CXX)
+	if () # adjust to your actual pybind target name if different
+		target_link_libraries(dpsimpy PRIVATE OpenMP::OpenMP_CXX)
+		target_compile_definitions(dpsimpy PRIVATE DPSIM_WITH_OPENMP)
+	endif()
+endif()
+
 install(TARGETS dpsim
 	EXPORT dpsim
 	FILE_SET public_headers DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}

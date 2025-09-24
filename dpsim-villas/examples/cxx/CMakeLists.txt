@@ -22,6 +22,7 @@ set(DPSIM_VILLAS_EXAMPLE_SOURCES
 	FpgaCosimulation.cpp
 	SharedMemExample.cpp
 	cosim-9bus-4order.cpp
+	cosim-test.cpp
 	# ShmemExample.cpp
 	# ShmemDistributedReference.cpp
 	# ShmemDistributedDirect.cpp
