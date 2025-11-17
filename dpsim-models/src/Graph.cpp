@@ -36,7 +36,7 @@ void CPS::Graph::Graph::render(std::ostream &os, const CPS::String &layout,
                                const CPS::String &format) {
   GVC_t *gvc;
   char *data;
-  unsigned len;
+  size_t len;
 
   gvc = gvContext();
 
