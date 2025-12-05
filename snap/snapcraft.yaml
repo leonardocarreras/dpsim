@@ -1,0 +1,132 @@
+name: dpsim-cli
+base: core22
+version: "0.1"
+summary: Real-time power system simulator (CLI only)
+description: |
+  DPsim is a C++ power system simulation library for dynamic power
+  system simulation. This snap ships the CLI tools only.
+
+grade: devel
+confinement: devmode   # switch to strict later
+
+apps:
+  dpsim:
+    command: usr/bin/dpsim
+    plugs:
+      - home
+      - network
+
+parts:
+  # SUNDIALS 3.2.1 (like your Docker/Nix setup)
+  sundials:
+    plugin: cmake
+    source: https://github.com/LLNL/sundials.git
+    source-tag: v3.2.1
+    source-depth: 1
+    cmake-parameters:
+      - -DCMAKE_BUILD_TYPE=Release
+    build-packages:
+      - build-essential
+      - cmake
+      - git
+      - pkg-config
+
+  # libiec61850 (as in Dockerfile)
+  libiec61850:
+    plugin: cmake
+    source: https://libiec61850.com/wp-content/uploads/2019/03/libiec61850-1.3.3.tar.gz
+    cmake-parameters:
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DBUILD_SHARED_LIBS=ON
+    build-packages:
+      - build-essential
+      - cmake
+      - pkg-config
+
+  dpsim:
+    plugin: cmake
+    source: .
+    after:
+      - sundials
+      - libiec61850
+
+    cmake-parameters:
+      # Generic build/setup
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DCMAKE_INSTALL_PREFIX=/usr
+      - -DBUILD_SHARED_LIBS=ON
+      - -DWITH_LTO=OFF      # matches Nix workaround
+
+      # Turn OFF extras we don't want in this snap
+      - -DDPSIM_BUILD_EXAMPLES=OFF
+      - -DDPSIM_BUILD_DOC=OFF
+
+      # Features (start minimal)
+      - -DWITH_OPENMP=ON
+      - -DWITH_CIM=OFF
+      - -DWITH_VILLAS=OFF
+      - -DWITH_GSL=ON
+      - -DWITH_MNASOLVERPLUGIN=ON
+      - -DWITH_SUNDIALS=ON
+
+      # No Python / pybind in this snap
+      - -DWITH_PYBIND=OFF
+
+      # Do NOT fetch any third-party code; we provide libs via packages
+      - -DFETCH_EIGEN=OFF
+      - -DFETCH_SUITESPARSE=OFF
+      - -DFETCH_SPDLOG=OFF
+      - -DFETCH_CIMPP=OFF
+      - -DFETCH_PYBIND=OFF
+      - -DFETCH_GRID_DATA=OFF
+      - -DFETCH_FILESYSTEM=OFF
+      - -DFETCH_JSON=OFF
+      - -DFETCH_READERWRITERQUEUE=OFF
+
+    build-environment:
+      - MAKEFLAGS: "-j4"
+
+    build-packages:
+      # Compiler + basic tools
+      - build-essential
+      - clang
+      - git
+      - cmake
+      - pkg-config
+      - wget
+      - gdb
+
+      # Core libs
+      - libeigen3-dev
+      - libspdlog-dev
+      - libfmt-dev
+      - nlohmann-json3-dev
+      - libgsl-dev
+      - libgraphviz-dev
+      - libsuitesparse-dev      # for KLU / SuiteSparse
+      - libxml2-dev
+
+      # Misc dependencies you already had in Docker (for RT/net features etc.)
+      - libssl-dev
+      - uuid-dev
+      - libcurl4-gnutls-dev
+      - libjansson-dev
+      - libwebsockets-dev
+      - libmosquitto-dev
+      - libconfig-dev
+      - libnl-3-dev
+
+    # Add runtime libs if needed when you hit missing .so errors
+    stage-packages:
+      - libgsl27
+      - libgraphviz6
+      - libsuitesparseconfig5
+      - libklu1
+      - libcholmod3
+      - libcurl4
+      - libssl3
+      - libjansson4
+      - libwebsockets16
+      - libmosquitto1
+      - libconfig9
+      - libnl-3-200
