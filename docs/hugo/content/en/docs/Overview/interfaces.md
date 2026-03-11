@@ -121,3 +121,5 @@ which have `syncOnSimulationStart` set, the `Simulation::sync` will be called be
 - write out all exported attributes again
 
 Note that this setting operates independently of the `blockOnRead` flag. This means that with both flags set, the simulation will block again after the synchronization at the start of the first time step until another value is received for the attribute in question.
+
+For real-time scheduling implications of interface `PreStep` / `PostStep` tasks and a proposed admission-test and core-assignment design, see [RT Fit-and-Assign]({{< ref "./Scheduling/rt-fit-and-assign.md" >}}).

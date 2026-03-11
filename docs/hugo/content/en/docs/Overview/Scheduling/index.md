@@ -13,3 +13,5 @@ In the simplest case, all tasks of a level have to be finished before tasks of t
 
 The dependencies of tasks on data are determined by referencing the attributes that are read or modified by the task.
 The scheduler computes the schedule prior to the simulation from the task dependency graph resulting from the tasks' data dependencies.
+
+For a design note on real-time admission testing, task-to-core assignment, and worker pinning, see [RT Fit-and-Assign]({{< ref "./rt-fit-and-assign.md" >}}).

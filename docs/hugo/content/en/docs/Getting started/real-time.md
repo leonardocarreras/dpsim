@@ -53,6 +53,8 @@ There is a `RealTimeDataLogger` that can be used to output simulation results in
 Note however, that this logger pre-allocated the memory required for all of the logging required during simulations.
 Your machine may run out of memory, when the simulation is long or you log too many signals.
 
+For a scheduler-level design note on admission testing, static task-to-core assignment, and why interface-heavy co-simulations can still overrun on `PREEMPT_RT`, see [RT Fit-and-Assign]({{< ref "../Overview/Scheduling/rt-fit-and-assign.md" >}}).
+
 You can increase the performance of your simulation by adding the `-flto` and  `-march=native` compiler flags:
 
 ```diff
