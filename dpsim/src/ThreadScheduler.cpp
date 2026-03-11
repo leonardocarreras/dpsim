@@ -10,8 +10,54 @@
 
 #include <iostream>
 
+#ifdef __linux__
+#include <pthread.h>
+#include <sched.h>
+#include <cstring>
+#endif
+
 using namespace CPS;
 using namespace DPsim;
+
+namespace {
+
+#ifdef __linux__
+bool pinThreadToCpu(std::thread::native_handle_type handle, Int cpu,
+                    CPS::Logger::Log log, const CPS::String &name) {
+  if (cpu < 0)
+    return true;
+
+  cpu_set_t cpuset;
+  CPU_ZERO(&cpuset);
+  CPU_SET(cpu, &cpuset);
+  int ret = pthread_setaffinity_np(handle, sizeof(cpu_set_t), &cpuset);
+  if (ret != 0) {
+    SPDLOG_LOGGER_WARN(log, "Failed to pin {} to CPU {}: {}", name, cpu,
+                       std::strerror(ret));
+    return false;
+  }
+
+  SPDLOG_LOGGER_INFO(log, "Pinned {} to CPU {}", name, cpu);
+  return true;
+}
+
+bool pinCurrentThreadToCpu(Int cpu, CPS::Logger::Log log,
+                           const CPS::String &name) {
+  return pinThreadToCpu(pthread_self(), cpu, log, name);
+}
+#else
+bool pinThreadToCpu(std::thread::native_handle_type, Int cpu, CPS::Logger::Log,
+                    const CPS::String &) {
+  return cpu < 0;
+}
+
+bool pinCurrentThreadToCpu(Int cpu, CPS::Logger::Log,
+                           const CPS::String &) {
+  return cpu < 0;
+}
+#endif
+
+} // namespace
 
 ThreadScheduler::ThreadScheduler(Int threads, String outMeasurementFile,
                                  Bool useConditionVariable)
@@ -26,6 +72,12 @@ ThreadScheduler::ThreadScheduler(Int threads, String outMeasurementFile,
 ThreadScheduler::~ThreadScheduler() {
   for (int i = 0; i < mNumThreads; i++)
     delete[] mSchedules[i];
+}
+
+void ThreadScheduler::setThreadCpuMapping(const std::vector<Int> &cpuMapping,
+                                          Bool pinMainThread) {
+  mThreadCpuMapping = cpuMapping;
+  mPinMainThread = pinMainThread;
 }
 
 void ThreadScheduler::scheduleTask(int thread, CPS::Task::Ptr task) {
@@ -59,8 +111,16 @@ void ThreadScheduler::finishSchedule(const Edges &inEdges) {
       }
     }
   }
+  if (!mThreadCpuMapping.empty() && mPinMainThread &&
+      static_cast<size_t>(0) < mThreadCpuMapping.size()) {
+    pinCurrentThreadToCpu(mThreadCpuMapping[0], mSLog, "scheduler-main");
+  }
   for (int i = 1; i < mNumThreads; i++) {
     mThreads.emplace_back(threadFunction, this, i);
+    if (static_cast<size_t>(i) < mThreadCpuMapping.size()) {
+      pinThreadToCpu(mThreads.back().native_handle(), mThreadCpuMapping[i],
+                     mSLog, fmt::format("scheduler-worker-{}", i));
+    }
   }
 }
 

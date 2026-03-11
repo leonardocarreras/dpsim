@@ -23,6 +23,9 @@ public:
   void step(Real time, Int timeStepCount);
   virtual void stop();
 
+  void setThreadCpuMapping(const std::vector<Int> &cpuMapping,
+                           Bool pinMainThread = false);
+
 protected:
   void finishSchedule(const Edges &inEdges);
   void scheduleTask(int thread, CPS::Task::Ptr task);
@@ -37,6 +40,8 @@ private:
   Barrier mStartBarrier;
 
   std::vector<std::thread> mThreads;
+  std::vector<Int> mThreadCpuMapping;
+  Bool mPinMainThread = false;
 
   std::vector<CPS::Task::List> mTempSchedules;
   struct ScheduleEntry {

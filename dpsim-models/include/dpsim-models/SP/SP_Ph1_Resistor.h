@@ -25,6 +25,10 @@ class Resistor : public MNASimPowerComp<Complex>,
                  public SharedFactory<Resistor>,
                  public PFSolverInterfaceBranch {
 
+protected:
+  /// Cached conductance (1/R), computed at initialization
+  Real mConductance = 0;
+
 private:
   /// base apparent power[VA]
   Real mBaseApparentPower;

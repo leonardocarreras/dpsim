@@ -20,6 +20,8 @@ class Resistor : public MNASimPowerComp<Real>,
                  public MNATearInterface,
                  public SharedFactory<Resistor> {
 protected:
+  /// Cached conductance matrix (R^-1), computed at initialization
+  Matrix mConductance = Matrix::Zero(3, 3);
 public:
   /// Defines UID, name, component parameters and logging level
   Resistor(String uid, String name,

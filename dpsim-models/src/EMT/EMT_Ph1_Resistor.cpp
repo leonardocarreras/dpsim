@@ -47,12 +47,12 @@ void EMT::Ph1::Resistor::mnaCompInitialize(Real omega, Real timeStep,
                                            Attribute<Matrix>::Ptr leftVector) {
   updateMatrixNodeIndices();
   **mRightVector = Matrix::Zero(0, 0);
+  mConductance = 1.0 / **mResistance;
 }
 
 void EMT::Ph1::Resistor::mnaCompApplySystemMatrixStamp(
     SparseMatrixRow &systemMatrix) {
-  Real conductance = 1. / **mResistance;
-  MNAStampUtils::stampConductance(conductance, systemMatrix, matrixNodeIndex(0),
+  MNAStampUtils::stampConductance(mConductance, systemMatrix, matrixNodeIndex(0),
                                   matrixNodeIndex(1), terminalNotGrounded(0),
                                   terminalNotGrounded(1), mSLog);
 }
@@ -86,7 +86,7 @@ void EMT::Ph1::Resistor::mnaCompUpdateVoltage(const Matrix &leftVector) {
 }
 
 void EMT::Ph1::Resistor::mnaCompUpdateCurrent(const Matrix &leftVector) {
-  (**mIntfCurrent)(0, 0) = (**mIntfVoltage)(0, 0) / **mResistance;
+  (**mIntfCurrent)(0, 0) = (**mIntfVoltage)(0, 0) * mConductance;
 }
 
 // #### Tear Methods ####

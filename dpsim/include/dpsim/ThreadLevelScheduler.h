@@ -13,6 +13,18 @@
 namespace DPsim {
 class ThreadLevelScheduler : public ThreadScheduler {
 public:
+  struct FitReport {
+    Bool valid = false;
+    Bool fitsExpectedStep = false;
+    Real expectedStepTime = 0.0;
+    Real predictedStepTime = 0.0;
+    Real criticalPathTime = 0.0;
+    std::vector<Real> levelMaxTimes;
+    std::vector<Real> threadLoads;
+    Int numLevels = 0;
+    Int numTasks = 0;
+  };
+
   ThreadLevelScheduler(Int threads = 1, String outMeasurementFile = String(),
                        String inMeasurementFile = String(),
                        Bool useConditionVariables = false,
@@ -21,15 +33,28 @@ public:
   void createSchedule(const CPS::Task::List &tasks, const Edges &inEdges,
                       const Edges &outEdges);
 
+  void setExpectedStepTime(Real timeStep) { mExpectedStepTime = timeStep; }
+  void setFitReportEnabled(Bool enabled) { mFitReportEnabled = enabled; }
+  const FitReport &getFitReport() const { return mFitReport; }
+
 private:
-  void
+  std::vector<TaskTime::rep>
   scheduleLevel(const CPS::Task::List &tasks,
                 const std::unordered_map<String, TaskTime::rep> &measurements,
                 const Edges &inEdges);
   void sortTasksByType(CPS::Task::List::iterator begin,
                        CPS::Task::List::iterator end);
+  void buildFitReport(const CPS::Task::List &ordered,
+                      const std::vector<CPS::Task::List> &levels,
+                      const std::unordered_map<String, TaskTime::rep> &measurements,
+                      const std::vector<std::vector<TaskTime::rep>> &levelThreadLoads,
+                      const Edges &inEdges);
+  static Real measurementToSeconds(TaskTime::rep time);
 
   String mInMeasurementFile;
   Bool mSortTaskTypes;
+  Real mExpectedStepTime = 0.0;
+  Bool mFitReportEnabled = true;
+  FitReport mFitReport;
 };
 }; // namespace DPsim

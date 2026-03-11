@@ -52,12 +52,13 @@ void DP::Ph3::Resistor::mnaCompInitialize(Real omega, Real timeStep,
                                           Attribute<Matrix>::Ptr leftVector) {
   updateMatrixNodeIndices();
   **mRightVector = Matrix::Zero(0, 0);
+  mConductance = (**mResistance).inverse();
 }
 
 void DP::Ph3::Resistor::mnaCompApplySystemMatrixStamp(
     SparseMatrixRow &systemMatrix) {
-  MatrixFixedSizeComp<3, 3> conductance = Matrix::Zero(3, 3);
-  conductance.real() = (**mResistance).inverse();
+  MatrixFixedSizeComp<3, 3> conductance = MatrixFixedSizeComp<3, 3>::Zero();
+  conductance.real() = mConductance;
 
   MNAStampUtils::stampAdmittanceMatrix(
       conductance, systemMatrix, matrixNodeIndex(0), matrixNodeIndex(1),
@@ -109,22 +110,19 @@ void DP::Ph3::Resistor::mnaCompUpdateVoltage(const Matrix &leftVector) {
 }
 
 void DP::Ph3::Resistor::mnaCompUpdateCurrent(const Matrix &leftVector) {
-  **mIntfCurrent = (**mResistance).inverse() * **mIntfVoltage;
+  **mIntfCurrent = mConductance * **mIntfVoltage;
   SPDLOG_LOGGER_DEBUG(mSLog, "Current A: {} < {}",
-
                       std::abs((**mIntfCurrent)(0, 0)),
                       std::arg((**mIntfCurrent)(0, 0)));
 }
 
 // #### Tear Methods ####
 void DP::Ph3::Resistor::mnaTearApplyMatrixStamp(SparseMatrixRow &tearMatrix) {
-  MatrixFixedSizeComp<3, 3> conductance = Matrix::Zero(3, 3);
-  conductance.real() = (**mResistance).inverse();
-  // Set diagonal entries
+  // Use cached conductance (mConductance = R^-1); tear stamp needs R, so use R directly.
   Math::addToMatrixElement(tearMatrix, mTearIdx * 3, mTearIdx * 3,
-                           1. / conductance(0, 0).real()); // 1 /
+                           1. / mConductance(0, 0));
   Math::addToMatrixElement(tearMatrix, mTearIdx * 3 + 1, mTearIdx * 3 + 1,
-                           1. / conductance(1, 1).real());
+                           1. / mConductance(1, 1));
   Math::addToMatrixElement(tearMatrix, mTearIdx * 3 + 2, mTearIdx * 3 + 2,
-                           1. / conductance(2, 2).real());
+                           1. / mConductance(2, 2));
 }

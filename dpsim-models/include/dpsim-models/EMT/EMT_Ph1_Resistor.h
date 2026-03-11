@@ -23,6 +23,9 @@ class Resistor : public MNASimPowerComp<Real>,
                  public MNATearInterface,
                  public SharedFactory<Resistor> {
 protected:
+  /// Cached conductance (1/R), computed at initialization
+  Real mConductance = 0;
+
 public:
   /// Defines UID, name, component parameters and logging level
   Resistor(String uid, String name,

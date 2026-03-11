@@ -65,19 +65,19 @@ void EMT::Ph3::Resistor::mnaCompInitialize(Real omega, Real timeStep,
                                            Attribute<Matrix>::Ptr leftVector) {
   updateMatrixNodeIndices();
   **mRightVector = Matrix::Zero(0, 0);
+  // Pre-compute and cache the conductance matrix (inverse of resistance).
+  Math::invertMatrix(**mResistance, mConductance);
 }
 
 void EMT::Ph3::Resistor::mnaCompApplySystemMatrixStamp(
     SparseMatrixRow &systemMatrix) {
-  MatrixFixedSize<3, 3> conductance = Matrix::Zero(3, 3);
-  conductance = (**mResistance).inverse();
-
+  // Use cached conductance — computed at init, refreshed by VariableResistor::hasParameterChanged().
   MNAStampUtils::stampConductanceMatrix(
-      conductance, systemMatrix, matrixNodeIndex(0), matrixNodeIndex(1),
+      mConductance, systemMatrix, matrixNodeIndex(0), matrixNodeIndex(1),
       terminalNotGrounded(0), terminalNotGrounded(1), mSLog);
 
   SPDLOG_LOGGER_INFO(mSLog, "\nConductance matrix: {:s}",
-                     Logger::matrixToString(conductance));
+                     Logger::matrixToString(mConductance));
 }
 
 void EMT::Ph3::Resistor::mnaCompAddPostStepDependencies(
@@ -124,9 +124,8 @@ void EMT::Ph3::Resistor::mnaCompUpdateVoltage(const Matrix &leftVector) {
 }
 
 void EMT::Ph3::Resistor::mnaCompUpdateCurrent(const Matrix &leftVector) {
-  Matrix resistanceInv = Matrix::Zero(3, 3);
-  Math::invertMatrix(**mResistance, resistanceInv);
-  **mIntfCurrent = resistanceInv * **mIntfVoltage;
+  // Use cached conductance — no per-step inversion.
+  **mIntfCurrent = mConductance * **mIntfVoltage;
   SPDLOG_LOGGER_DEBUG(mSLog, "\nCurrent: {:s}",
                       Logger::matrixToString(**mIntfCurrent));
   mSLog->flush();

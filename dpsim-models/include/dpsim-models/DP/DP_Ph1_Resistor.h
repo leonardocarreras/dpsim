@@ -22,6 +22,10 @@ class Resistor : public MNASimPowerComp<Complex>,
                  public MNATearInterface,
                  public DAEInterface,
                  public SharedFactory<Resistor> {
+protected:
+  /// Cached conductance (1/R), computed at initialization
+  Real mConductance = 0;
+
 public:
   /// Defines UID, name and logging level
   Resistor(String uid, String name,
@@ -79,7 +83,6 @@ public:
     Resistor &mResistor;
     std::vector<Attribute<Matrix>::Ptr> mLeftVectors;
   };
-
   // #### MNA Tear Section ####
   void mnaTearApplyMatrixStamp(SparseMatrixRow &tearMatrix);
 

@@ -29,6 +29,7 @@ list(APPEND MODELS_SOURCES
 	DP/DP_Ph1_RXLoadSwitch.cpp
 	DP/DP_Ph1_PQLoadCS.cpp
 	DP/DP_Ph1_Resistor.cpp
+		DP/DP_Ph1_VariableResistor.cpp
 	DP/DP_Ph1_Transformer.cpp
 	DP/DP_Ph1_VoltageSource.cpp
 	DP/DP_Ph1_VoltageSourceRamp.cpp
@@ -55,6 +56,7 @@ list(APPEND MODELS_SOURCES
 	DP/DP_Ph3_Capacitor.cpp
 	DP/DP_Ph3_Inductor.cpp
 	DP/DP_Ph3_Resistor.cpp
+		DP/DP_Ph3_VariableResistor.cpp
 	DP/DP_Ph3_PiLine.cpp
 	DP/DP_Ph3_SeriesResistor.cpp
 	DP/DP_Ph3_SeriesSwitch.cpp
@@ -68,6 +70,7 @@ list(APPEND MODELS_SOURCES
 	EMT/EMT_Ph1_CurrentSource.cpp
 	EMT/EMT_Ph1_Inductor.cpp
 	EMT/EMT_Ph1_Resistor.cpp
+		EMT/EMT_Ph1_VariableResistor.cpp
 	EMT/EMT_Ph1_VoltageSource.cpp
 	EMT/EMT_Ph1_VoltageSourceRamp.cpp
 	EMT/EMT_Ph1_VoltageSourceNorton.cpp
@@ -86,6 +89,7 @@ list(APPEND MODELS_SOURCES
 	EMT/EMT_Ph3_AvVoltageSourceInverterDQ.cpp
 	EMT/EMT_Ph3_AvVoltSourceInverterStateSpace.cpp
 	EMT/EMT_Ph3_Resistor.cpp
+		EMT/EMT_Ph3_VariableResistor.cpp
 	EMT/EMT_Ph3_SeriesResistor.cpp
 	EMT/EMT_Ph3_SeriesSwitch.cpp
 	EMT/EMT_Ph3_VoltageSourceNorton.cpp
@@ -118,6 +122,7 @@ list(APPEND MODELS_SOURCES
 	SP/SP_Ph1_Capacitor.cpp
 	SP/SP_Ph1_Inductor.cpp
 	SP/SP_Ph1_Resistor.cpp
+		SP/SP_Ph1_VariableResistor.cpp
 	SP/SP_Ph1_AvVoltageSourceInverterDQ.cpp
 	SP/SP_Ph1_RXLine.cpp
 	SP/SP_Ph1_VoltageSourceInverter.cpp
@@ -144,6 +149,7 @@ list(APPEND MODELS_SOURCES
 	SP/SP_Ph3_Capacitor.cpp
 	SP/SP_Ph3_Inductor.cpp
 	SP/SP_Ph3_Resistor.cpp
+		SP/SP_Ph3_VariableResistor.cpp
 	SP/SP_Ph3_VoltageSource.cpp
 
 	Signal/DecouplingLine.cpp

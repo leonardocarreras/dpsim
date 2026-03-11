@@ -93,6 +93,7 @@ void SP::Ph1::Resistor::mnaCompInitialize(Real omega, Real timeStep,
                                           Attribute<Matrix>::Ptr leftVector) {
   updateMatrixNodeIndices();
   **mRightVector = Matrix::Zero(0, 0);
+  mConductance = 1.0 / **mResistance;
 
   SPDLOG_LOGGER_INFO(mSLog,
                      "\n--- MNA initialization ---"
@@ -105,7 +106,7 @@ void SP::Ph1::Resistor::mnaCompInitialize(Real omega, Real timeStep,
 
 void SP::Ph1::Resistor::mnaCompApplySystemMatrixStamp(
     SparseMatrixRow &systemMatrix) {
-  Complex conductance = Complex(1. / **mResistance, 0);
+  Complex conductance = Complex(mConductance, 0);
 
   MNAStampUtils::stampAdmittance(conductance, systemMatrix, matrixNodeIndex(0),
                                  matrixNodeIndex(1), terminalNotGrounded(0),
@@ -148,7 +149,7 @@ void SP::Ph1::Resistor::mnaCompUpdateVoltage(const Matrix &leftVector) {
 
 void SP::Ph1::Resistor::mnaCompUpdateCurrent(const Matrix &leftVector) {
   for (UInt freq = 0; freq < mNumFreqs; freq++) {
-    (**mIntfCurrent)(0, freq) = (**mIntfVoltage)(0, freq) / **mResistance;
+    (**mIntfCurrent)(0, freq) = (**mIntfVoltage)(0, freq) * mConductance;
     SPDLOG_LOGGER_DEBUG(mSLog, "Current {:s}",
                         Logger::phasorToString((**mIntfCurrent)(0, freq)));
   }

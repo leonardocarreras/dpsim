@@ -2,13 +2,40 @@
 #include "../../dpsim/examples/cxx/GeneratorFactory.h"
 #include <dpsim-villas/InterfaceVillasQueueless.h>
 #include <dpsim/InterfaceCosimSyncShmem.h>
+#include <dpsim/ThreadLevelScheduler.h>
 
 #include <DPsim.h>
+
+#include <sstream>
 
 using namespace DPsim;
 using namespace CPS;
 
 CPS::CIM::Examples::Grids::NineBus::ScenarioConfig ninebus;
+
+static std::vector<Int> parseCpuList(const std::string &spec) {
+    std::vector<Int> cpus;
+    std::stringstream ss(spec);
+    std::string token;
+    while (std::getline(ss, token, ',')) {
+        if (token.empty())
+            continue;
+
+        auto dash = token.find('-');
+        if (dash == std::string::npos) {
+            cpus.push_back(static_cast<Int>(std::stoi(token)));
+            continue;
+        }
+
+        Int begin = static_cast<Int>(std::stoi(token.substr(0, dash)));
+        Int end = static_cast<Int>(std::stoi(token.substr(dash + 1)));
+        if (end < begin)
+            std::swap(begin, end);
+        for (Int cpu = begin; cpu <= end; ++cpu)
+            cpus.push_back(cpu);
+    }
+    return cpus;
+}
 
 const std::string buildFpgaConfig(CommandLineArgs &args) {
   std::filesystem::path fpgaIpPath =
@@ -871,6 +898,39 @@ int main(int argc, char *argv[]) {
   sim.setDomain(Domain::EMT);
   sim.doSystemMatrixRecomputation(true);
   sim.setLogStepTimes(true);
+
+    if (args.options.find("threads") != args.options.end()) {
+        auto numThreads = args.getOptionInt("threads");
+        String outMeasurementFile;
+        String inMeasurementFile;
+        if (args.options.find("sched_out") != args.options.end())
+            outMeasurementFile = args.getOptionString("sched_out");
+        if (args.options.find("sched_in") != args.options.end())
+            inMeasurementFile = args.getOptionString("sched_in");
+
+        auto scheduler = std::make_shared<ThreadLevelScheduler>(
+                numThreads, outMeasurementFile, inMeasurementFile);
+        scheduler->setExpectedStepTime(args.timeStep);
+        if (args.options.find("sched_report") != args.options.end()) {
+            scheduler->setFitReportEnabled(args.getOptionBool("sched_report"));
+        }
+        if (args.options.find("sched_cpus") != args.options.end()) {
+            auto cpuMapping = parseCpuList(args.getOptionString("sched_cpus"));
+            Bool pinMainThread = true;
+            if (args.options.find("sched_pin_main") != args.options.end()) {
+                pinMainThread = args.getOptionBool("sched_pin_main");
+            }
+            scheduler->setThreadCpuMapping(cpuMapping, pinMainThread);
+            CPS::Logger::get(args.name)->info(
+                    "Configured ThreadLevelScheduler with {} thread(s) and {} CPU mapping entries",
+                    numThreads, cpuMapping.size());
+        } else {
+            CPS::Logger::get(args.name)->info(
+                    "Configured ThreadLevelScheduler with {} thread(s)", numThreads);
+        }
+        sim.setScheduler(scheduler);
+    }
+
   if (log) {
     sim.addLogger(logger);
   }

@@ -9,6 +9,7 @@
 #include <dpsim/ThreadLevelScheduler.h>
 
 #include <algorithm>
+#include <chrono>
 #include <iostream>
 #include <typeinfo>
 
@@ -28,6 +29,9 @@ void ThreadLevelScheduler::createSchedule(const Task::List &tasks,
                                           const Edges &outEdges) {
   Task::List ordered;
   std::vector<Task::List> levels;
+  std::vector<std::vector<TaskTime::rep>> levelThreadLoads;
+
+  mFitReport = FitReport();
 
   Scheduler::topologicalSort(tasks, inEdges, outEdges, ordered);
   Scheduler::initMeasurements(ordered);
@@ -39,8 +43,10 @@ void ThreadLevelScheduler::createSchedule(const Task::List &tasks,
     readMeasurements(mInMeasurementFile, measurements);
     for (size_t level = 0; level < levels.size(); level++) {
       // Distribute tasks such that the execution time is (approximately) minimized
-      scheduleLevel(levels[level], measurements, inEdges);
+      levelThreadLoads.push_back(scheduleLevel(levels[level], measurements, inEdges));
     }
+    if (mFitReportEnabled)
+      buildFitReport(ordered, levels, measurements, levelThreadLoads, inEdges);
   } else {
     for (size_t level = 0; level < levels.size(); level++) {
       if (mSortTaskTypes)
@@ -58,6 +64,10 @@ void ThreadLevelScheduler::createSchedule(const Task::List &tasks,
   }
 
   ThreadScheduler::finishSchedule(inEdges);
+}
+
+Real ThreadLevelScheduler::measurementToSeconds(TaskTime::rep time) {
+  return std::chrono::duration<double>(TaskTime(time)).count();
 }
 
 void ThreadLevelScheduler::sortTasksByType(Task::List::iterator begin,
@@ -78,11 +88,12 @@ void ThreadLevelScheduler::sortTasksByType(Task::List::iterator begin,
   std::sort(begin, end, cmp);
 }
 
-void ThreadLevelScheduler::scheduleLevel(
+std::vector<Scheduler::TaskTime::rep> ThreadLevelScheduler::scheduleLevel(
     const Task::List &tasks,
     const std::unordered_map<String, TaskTime::rep> &measurements,
     const Edges &inEdges) {
   Task::List tasksSorted = tasks;
+  std::vector<TaskTime::rep> totalTimes(mNumThreads, 0);
 
   // Check that measurements map is complete
   for (auto task : tasks) {
@@ -107,14 +118,19 @@ void ThreadLevelScheduler::scheduleLevel(
       TaskTime::rep curTime = 0;
       while (curTime < avgTime && task < tasksSorted.size()) {
         scheduleTask(thread, tasksSorted[task]);
-        curTime += measurements.at(tasksSorted[task]->toString());
+        auto taskTime = measurements.at(tasksSorted[task]->toString());
+        curTime += taskTime;
+        totalTimes[thread] += taskTime;
         task++;
       }
     }
     // All tasks should be distributed, but just to be sure, put the remaining
     // ones to the last thread
     for (; task < tasksSorted.size(); task++)
-      scheduleTask(mNumThreads - 1, tasksSorted[task]);
+      {
+        scheduleTask(mNumThreads - 1, tasksSorted[task]);
+        totalTimes[mNumThreads - 1] += measurements.at(tasksSorted[task]->toString());
+      }
   } else {
     // Sort tasks in descending execution time
     auto cmp = [&measurements](const Task::Ptr &p1,
@@ -124,12 +140,83 @@ void ThreadLevelScheduler::scheduleLevel(
     std::sort(tasksSorted.begin(), tasksSorted.end(), cmp);
 
     // Greedy heuristic: schedule the tasks to the thread with the smallest current execution time
-    std::vector<TaskTime::rep> totalTimes(mNumThreads, 0);
     for (auto task : tasksSorted) {
       auto minIt = std::min_element(totalTimes.begin(), totalTimes.end());
       Int minIdx = static_cast<UInt>(minIt - totalTimes.begin());
       scheduleTask(minIdx, task);
       totalTimes[minIdx] += measurements.at(task->toString());
+    }
+  }
+
+  return totalTimes;
+}
+
+void ThreadLevelScheduler::buildFitReport(
+    const Task::List &ordered, const std::vector<Task::List> &levels,
+    const std::unordered_map<String, TaskTime::rep> &measurements,
+    const std::vector<std::vector<TaskTime::rep>> &levelThreadLoads,
+    const Edges &inEdges) {
+  mFitReport.valid = true;
+  mFitReport.expectedStepTime = mExpectedStepTime;
+  mFitReport.numLevels = static_cast<Int>(levels.size());
+  mFitReport.numTasks = static_cast<Int>(ordered.size());
+  mFitReport.threadLoads.assign(mNumThreads, 0.0);
+
+  std::unordered_map<Task::Ptr, TaskTime::rep> longestPath;
+  TaskTime::rep criticalPath = 0;
+  for (auto task : ordered) {
+    TaskTime::rep own = measurements.at(task->toString());
+    TaskTime::rep bestPred = 0;
+    auto edgeIt = inEdges.find(task);
+    if (edgeIt != inEdges.end()) {
+      for (auto pred : edgeIt->second) {
+        auto predIt = longestPath.find(pred);
+        if (predIt != longestPath.end() && predIt->second > bestPred)
+          bestPred = predIt->second;
+      }
+    }
+    longestPath[task] = bestPred + own;
+    criticalPath = std::max(criticalPath, longestPath[task]);
+  }
+
+  Real predicted = 0.0;
+  for (const auto &loads : levelThreadLoads) {
+    if (loads.empty()) {
+      mFitReport.levelMaxTimes.push_back(0.0);
+      continue;
+    }
+    auto levelMax = *std::max_element(loads.begin(), loads.end());
+    Real levelMaxSeconds = measurementToSeconds(levelMax);
+    mFitReport.levelMaxTimes.push_back(levelMaxSeconds);
+    predicted += levelMaxSeconds;
+    for (size_t idx = 0; idx < loads.size(); ++idx) {
+      mFitReport.threadLoads[idx] += measurementToSeconds(loads[idx]);
+    }
+  }
+
+  mFitReport.predictedStepTime = predicted;
+  mFitReport.criticalPathTime = measurementToSeconds(criticalPath);
+  mFitReport.fitsExpectedStep =
+      mExpectedStepTime > 0.0 ? predicted <= mExpectedStepTime : false;
+
+  SPDLOG_LOGGER_INFO(
+      mSLog,
+      "Fit report: tasks={}, levels={}, critical_path={:.9f}s, predicted_step={:.9f}s",
+      mFitReport.numTasks, mFitReport.numLevels, mFitReport.criticalPathTime,
+      mFitReport.predictedStepTime);
+  for (size_t idx = 0; idx < mFitReport.threadLoads.size(); ++idx) {
+    SPDLOG_LOGGER_INFO(mSLog, "Fit report: cumulative load on worker {} = {:.9f}s",
+                       idx, mFitReport.threadLoads[idx]);
+  }
+  if (mExpectedStepTime > 0.0) {
+    if (mFitReport.fitsExpectedStep) {
+      SPDLOG_LOGGER_INFO(mSLog,
+                         "Fit report: predicted step {:.9f}s fits into timestep {:.9f}s",
+                         mFitReport.predictedStepTime, mExpectedStepTime);
+    } else {
+      SPDLOG_LOGGER_WARN(mSLog,
+                         "Fit report: predicted step {:.9f}s exceeds timestep {:.9f}s",
+                         mFitReport.predictedStepTime, mExpectedStepTime);
     }
   }
 }
