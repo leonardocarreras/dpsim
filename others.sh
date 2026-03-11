@@ -15,6 +15,6 @@ AllowedCPUs=4-9
 EOF
 sudo systemctl daemon-reload
 
-sudo systemd-run --scope --slice=rt-follower.slice   chrt -f 90 taskset -c 4-9   /home/leo/git/github/my/dpsim/build/dpsim-villas/examples/cxx/EMT_Ph3_9bus_4order_cosim   -o transport=shmem -o shm=/dpsim_sync_case -o log=true
+sudo systemd-run --scope --slice=rt-follower.slice   chrt -f 90 taskset -c 4-9   /home/leo/git/github/my/paper/interfacepaper/dpsim/build/dpsim-villas/examples/cxx/EMT_Ph3_9bus_4order_cosim  -o transport=shmem -o shm=/dpsim_sync_case -o log=true
 
-sudo systemd-run --scope --slice=rt-leader.slice   chrt -f 90 taskset -c 10-15   /home/leo/git/github/my/dpsim/build/dpsim-villas/examples/cxx/EMT_Ph3_simple_cosim_leader_passive_sync   -o shm=/dpsim_sync_case -o log=true -t 0.00005 -d 10
+sudo systemd-run --scope --slice=rt-leader.slice   chrt -f 90 taskset -c 10-15   /home/leo/git/github/my/paper/interfacepaper/dpsim/build/dpsim-villas/examples/cxx/EMT_Ph3_simple_cosim_leader_passive_sync   -o shm=/dpsim_sync_case -o log=true -t 0.00005 -d 10

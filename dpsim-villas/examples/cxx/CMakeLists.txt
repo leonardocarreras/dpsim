@@ -89,6 +89,7 @@ set(DPSIM_VILLAS_RT_EXAMPLE_SOURCES
 	EMT_Ph3_simple_cosim_leader.cpp
 	EMT_Ph3_simple_cosim_leader_sync.cpp
 	EMT_Ph3_simple_cosim_leader_passive_sync.cpp
+	EMT_Ph3_9bus_load6_cosim_leader.cpp
 	EMT_Ph3_simple_cosim_leader_v2.cpp
 	EMT_Ph3_simple_cosim_leader_v2_sync.cpp
 	)
