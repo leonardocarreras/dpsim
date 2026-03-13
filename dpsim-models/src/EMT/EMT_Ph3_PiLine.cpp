@@ -32,6 +32,16 @@ SimPowerComp<Real>::Ptr EMT::Ph3::PiLine::clone(String name) {
   return copy;
 }
 
+void EMT::Ph3::PiLine::mnaCompInitialize(Real omega, Real timeStep,
+                                         Attribute<Matrix>::Ptr leftVector) {
+  CompositePowerComp<Real>::mnaCompInitialize(omega, timeStep, leftVector);
+
+  mMnaTasks.clear();
+  appendMnaSubTasks();
+  mMnaTasks.push_back(std::make_shared<MnaPreAggregate>(*this));
+  mMnaTasks.push_back(std::make_shared<MnaPostFinalize>(*this, leftVector));
+}
+
 void EMT::Ph3::PiLine::initializeFromNodesAndTerminals(Real frequency) {
 
   // By default there is always a small conductance to ground to
@@ -198,6 +208,39 @@ void EMT::Ph3::PiLine::mnaParentPostStep(Real time, Int timeStepCount,
                                          Attribute<Matrix>::Ptr &leftVector) {
   mnaCompUpdateVoltage(**leftVector);
   mnaCompUpdateCurrent(**leftVector);
+}
+
+void EMT::Ph3::PiLine::appendMnaSubTasks() {
+  for (auto subComp : mSubComponents) {
+    if (auto mnaSubComp = std::dynamic_pointer_cast<MNAInterface>(subComp)) {
+      const auto &subTasks = mnaSubComp->mnaTasks();
+      mMnaTasks.insert(mMnaTasks.end(), subTasks.begin(), subTasks.end());
+    }
+  }
+}
+
+void EMT::Ph3::PiLine::addMnaPreAggregateDependencies(
+    AttributeBase::List &prevStepDependencies,
+    AttributeBase::List &attributeDependencies,
+    AttributeBase::List &modifiedAttributes) {
+  mnaParentAddPreStepDependencies(prevStepDependencies, attributeDependencies,
+                                  modifiedAttributes);
+  attributeDependencies.push_back(mSubSeriesInductor->mRightVector);
+  if (mSubParallelCapacitor0)
+    attributeDependencies.push_back(mSubParallelCapacitor0->mRightVector);
+  if (mSubParallelCapacitor1)
+    attributeDependencies.push_back(mSubParallelCapacitor1->mRightVector);
+}
+
+void EMT::Ph3::PiLine::addMnaPostFinalizeDependencies(
+    AttributeBase::List &prevStepDependencies,
+    AttributeBase::List &attributeDependencies,
+    AttributeBase::List &modifiedAttributes,
+    Attribute<Matrix>::Ptr &leftVector) {
+  mnaParentAddPostStepDependencies(prevStepDependencies,
+                                   attributeDependencies, modifiedAttributes,
+                                   leftVector);
+  attributeDependencies.push_back(mSubSeriesInductor->mIntfCurrent);
 }
 
 void EMT::Ph3::PiLine::mnaCompUpdateVoltage(const Matrix &leftVector) {

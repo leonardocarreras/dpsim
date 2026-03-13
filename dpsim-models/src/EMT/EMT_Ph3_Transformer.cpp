@@ -233,6 +233,16 @@ void EMT::Ph3::Transformer::mnaParentInitialize(
       mTerminals[1]->node()->name(), mTerminals[1]->node()->matrixNodeIndex());
 }
 
+void EMT::Ph3::Transformer::mnaCompInitialize(
+    Real omega, Real timeStep, Attribute<Matrix>::Ptr leftVector) {
+  CompositePowerComp<Real>::mnaCompInitialize(omega, timeStep, leftVector);
+
+  mMnaTasks.clear();
+  appendMnaSubTasks();
+  mMnaTasks.push_back(std::make_shared<MnaPreAggregate>(*this));
+  mMnaTasks.push_back(std::make_shared<MnaPostFinalize>(*this, leftVector));
+}
+
 void EMT::Ph3::Transformer::mnaCompApplySystemMatrixStamp(
     SparseMatrixRow &systemMatrix) {
   // Ideal transformer equations
@@ -363,6 +373,45 @@ void EMT::Ph3::Transformer::mnaParentPostStep(
     Real time, Int timeStepCount, Attribute<Matrix>::Ptr &leftVector) {
   mnaCompUpdateVoltage(**leftVector);
   mnaCompUpdateCurrent(**leftVector);
+}
+
+void EMT::Ph3::Transformer::appendMnaSubTasks() {
+  for (auto subComp : mSubComponents) {
+    if (auto mnaSubComp = std::dynamic_pointer_cast<MNAInterface>(subComp)) {
+      const auto &subTasks = mnaSubComp->mnaTasks();
+      mMnaTasks.insert(mMnaTasks.end(), subTasks.begin(), subTasks.end());
+    }
+  }
+}
+
+void EMT::Ph3::Transformer::addMnaPreAggregateDependencies(
+    AttributeBase::List &prevStepDependencies,
+    AttributeBase::List &attributeDependencies,
+    AttributeBase::List &modifiedAttributes) {
+  mnaParentAddPreStepDependencies(prevStepDependencies, attributeDependencies,
+                                  modifiedAttributes);
+  attributeDependencies.push_back(mSubInductor->mRightVector);
+  if (mSubResistor)
+    attributeDependencies.push_back(mSubResistor->mRightVector);
+  if (mSubSnubResistor1)
+    attributeDependencies.push_back(mSubSnubResistor1->mRightVector);
+  if (mSubSnubResistor2)
+    attributeDependencies.push_back(mSubSnubResistor2->mRightVector);
+  if (mSubSnubCapacitor1)
+    attributeDependencies.push_back(mSubSnubCapacitor1->mRightVector);
+  if (mSubSnubCapacitor2)
+    attributeDependencies.push_back(mSubSnubCapacitor2->mRightVector);
+}
+
+void EMT::Ph3::Transformer::addMnaPostFinalizeDependencies(
+    AttributeBase::List &prevStepDependencies,
+    AttributeBase::List &attributeDependencies,
+    AttributeBase::List &modifiedAttributes,
+    Attribute<Matrix>::Ptr &leftVector) {
+  mnaParentAddPostStepDependencies(prevStepDependencies,
+                                   attributeDependencies, modifiedAttributes,
+                                   leftVector);
+  attributeDependencies.push_back(mSubInductor->mIntfCurrent);
 }
 
 void EMT::Ph3::Transformer::mnaCompUpdateCurrent(const Matrix &leftVector) {

@@ -138,11 +138,11 @@ SystemTopology buildTopology(CommandLineArgs &args,
           CPS::UpdateTaskKind::UPDATE_ON_GET, *updateFn,
           inFromExternal_SeqDPsimAttribute));
 
-  intf->addImport(inFromExternal_SeqExternalAttribute, true, true);
-  intf->addImport(inFromExternal_SeqDPsimAttribute, true, true);
-  intf->addImport(vs->mVoltageRef->deriveCoeff<Real>(0, 0), true, true);
-  intf->addImport(vs->mVoltageRef->deriveCoeff<Real>(1, 0), true, true);
-  intf->addImport(vs->mVoltageRef->deriveCoeff<Real>(2, 0), true, true);
+  intf->addImport(inFromExternal_SeqExternalAttribute, false, false);
+  intf->addImport(inFromExternal_SeqDPsimAttribute, false, false);
+  intf->addImport(vs->mVoltageRef->deriveCoeff<Real>(0, 0), false, false);
+  intf->addImport(vs->mVoltageRef->deriveCoeff<Real>(1, 0), false, false);
+  intf->addImport(vs->mVoltageRef->deriveCoeff<Real>(2, 0), false, false);
 
   intf->addExport(outToExternal_SeqDPsimAttribute);
   intf->addExport(inFromExternal_SeqExternalAttribute);

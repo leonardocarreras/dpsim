@@ -164,11 +164,14 @@ SystemTopology buildTopology(CommandLineArgs &args,
           inFromExternal_SeqDPsimAttribute));
 
   // Import: seq counters + bus6 voltages from follower → drive vs
-  intf->addImport(inFromExternal_SeqExternalAttribute, true, true);
-  intf->addImport(inFromExternal_SeqDPsimAttribute, true, true);
-  intf->addImport(vs->mVoltageRef->deriveCoeff<Real>(0, 0), true, true);
-  intf->addImport(vs->mVoltageRef->deriveCoeff<Real>(1, 0), true, true);
-  intf->addImport(vs->mVoltageRef->deriveCoeff<Real>(2, 0), true, true);
+  // This sync leader uses absolute start-time coordination via
+  // InterfaceCosimSyncShmem, so imports should not perform an additional
+  // startup synchronization read.
+  intf->addImport(inFromExternal_SeqExternalAttribute, false, false);
+  intf->addImport(inFromExternal_SeqDPsimAttribute, false, false);
+  intf->addImport(vs->mVoltageRef->deriveCoeff<Real>(0, 0), false, false);
+  intf->addImport(vs->mVoltageRef->deriveCoeff<Real>(1, 0), false, false);
+  intf->addImport(vs->mVoltageRef->deriveCoeff<Real>(2, 0), false, false);
 
   // Export: seq counters + load6 current (through rvs) to follower
   intf->addExport(outToExternal_SeqDPsimAttribute);
@@ -241,7 +244,7 @@ int main(int argc, char *argv[]) {
   sim.setLogStepTimes(true);
 
   // Drop config (allow override via -o drop= and -o drop_threshold=)
-  bool dropEnabled = true;
+/*   bool dropEnabled = true;
   double dropThreshold = 0.95;
   if (args.options.find("drop") != args.options.end()) {
     try { dropEnabled = args.getOptionBool("drop"); } catch (...) {}
@@ -250,7 +253,7 @@ int main(int argc, char *argv[]) {
     try { dropThreshold = args.getOptionReal("drop_threshold"); } catch (...) {}
   }
   sim.setDropEnabled(dropEnabled);
-  sim.setDropThreshold(dropThreshold);
+  sim.setDropThreshold(dropThreshold); */
 
   if (logger)
     sim.addLogger(logger);

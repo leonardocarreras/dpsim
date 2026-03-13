@@ -70,6 +70,9 @@ public:
 
   // #### MNA section ####
   /// Initializes internal variables of the component
+  void mnaCompInitialize(Real omega, Real timeStep,
+                         Attribute<Matrix>::Ptr leftVector) override;
+  /// Initializes internal variables of the component
   void mnaParentInitialize(Real omega, Real timeStep,
                            Attribute<Matrix>::Ptr leftVector) override;
   /// Stamps system matrix
@@ -94,6 +97,53 @@ public:
                                    AttributeBase::List &attributeDependencies,
                                    AttributeBase::List &modifiedAttributes,
                                    Attribute<Matrix>::Ptr &leftVector) override;
+
+private:
+  void appendMnaSubTasks();
+  void addMnaPreAggregateDependencies(
+      AttributeBase::List &prevStepDependencies,
+      AttributeBase::List &attributeDependencies,
+      AttributeBase::List &modifiedAttributes);
+  void addMnaPostFinalizeDependencies(
+      AttributeBase::List &prevStepDependencies,
+      AttributeBase::List &attributeDependencies,
+      AttributeBase::List &modifiedAttributes,
+      Attribute<Matrix>::Ptr &leftVector);
+
+  class MnaPreAggregate : public CPS::Task {
+  public:
+    explicit MnaPreAggregate(Transformer &comp)
+        : Task(**comp.mName + ".MnaPreAggregate"), mComp(comp) {
+      mComp.addMnaPreAggregateDependencies(
+          mPrevStepDependencies, mAttributeDependencies, mModifiedAttributes);
+    }
+
+    void execute(Real time, Int timeStepCount) override {
+      mComp.mnaParentPreStep(time, timeStepCount);
+    }
+
+  private:
+    Transformer &mComp;
+  };
+
+  class MnaPostFinalize : public CPS::Task {
+  public:
+    MnaPostFinalize(Transformer &comp, Attribute<Matrix>::Ptr leftVector)
+        : Task(**comp.mName + ".MnaPostFinalize"), mComp(comp),
+          mLeftVector(leftVector) {
+      mComp.addMnaPostFinalizeDependencies(
+          mPrevStepDependencies, mAttributeDependencies, mModifiedAttributes,
+          mLeftVector);
+    }
+
+    void execute(Real time, Int timeStepCount) override {
+      mComp.mnaParentPostStep(time, timeStepCount, mLeftVector);
+    }
+
+  private:
+    Transformer &mComp;
+    Attribute<Matrix>::Ptr mLeftVector;
+  };
 };
 } // namespace Ph3
 } // namespace EMT

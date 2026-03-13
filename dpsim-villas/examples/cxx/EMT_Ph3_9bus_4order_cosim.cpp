@@ -931,6 +931,18 @@ int main(int argc, char *argv[]) {
         sim.setScheduler(scheduler);
     }
 
+  // Drop config (allow override via -o drop= and -o drop_threshold=)
+/*   bool dropEnabled = true;
+  double dropThreshold = 0.95;
+  if (args.options.find("drop") != args.options.end()) {
+    try { dropEnabled = args.getOptionBool("drop"); } catch (...) {}
+  }
+  if (args.options.find("drop_threshold") != args.options.end()) {
+    try { dropThreshold = args.getOptionReal("drop_threshold"); } catch (...) {}
+  }
+  sim.setDropEnabled(dropEnabled);
+  sim.setDropThreshold(dropThreshold); */
+    
   if (log) {
     sim.addLogger(logger);
   }
@@ -945,6 +957,6 @@ int main(int argc, char *argv[]) {
   CPS::Logger::get("cosim-9bus-4order")->info("Simulation finished.");
     sim.checkForOverruns(args.name + "_overruns");
 
-  // std::ofstream of("task_dependencies.svg");
-  // sim.dependencyGraph().render(of);
+//   std::ofstream of("task_dependencies.svg");
+//   sim.dependencyGraph().render(of);
 }
