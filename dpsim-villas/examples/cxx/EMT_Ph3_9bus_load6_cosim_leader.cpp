@@ -204,7 +204,7 @@ SystemTopology buildTopology(CommandLineArgs &args,
 int main(int argc, char *argv[]) {
   CommandLineArgs args(argc, argv, "EMT_3Ph_9bus_load6_cosim_leader",
                        0.00005, 60.0, ninebus.nomFreq, -1,
-                       CPS::Logger::Level::info, CPS::Logger::Level::off,
+                       CPS::Logger::Level::info, CPS::Logger::Level::info,
                        false, false, false, CPS::Domain::EMT);
 
   CPS::Logger::setLogDir("logs/" + args.name);
@@ -225,7 +225,9 @@ int main(int argc, char *argv[]) {
   }
   auto syncIntf = std::make_shared<InterfaceCosimSyncShmem>(
       "CosimSync", shmName, InterfaceCosimSyncShmem::Role::Leader);
+  CPS::Logger::get(args.name)->info("Before syncIntf->open()");
   syncIntf->open();
+  CPS::Logger::get(args.name)->info("After syncIntf->open()");
 
   std::filesystem::path logFilename =
       "logs/" + args.name + "/" + args.name + ".csv";
@@ -234,11 +236,17 @@ int main(int argc, char *argv[]) {
     logger = RealTimeDataLogger::make(logFilename, args.duration, args.timeStep);
   }
 
+  CPS::Logger::get(args.name)->info("Before buildTopology()");
   auto sys = buildTopology(args, villasIntf, logger);
+  CPS::Logger::get(args.name)->info("After buildTopology()");
 
   RealTimeSimulation sim(args.name, args);
+  CPS::Logger::get(args.name)->info("Before sim.setSystem()");
   sim.setSystem(sys);
+  CPS::Logger::get(args.name)->info("After sim.setSystem()");
+  CPS::Logger::get(args.name)->info("Before sim.addInterface()");
   sim.addInterface(villasIntf);
+  CPS::Logger::get(args.name)->info("After sim.addInterface()");
   sim.setDomain(Domain::EMT);
   sim.doSystemMatrixRecomputation(true);
   sim.setLogStepTimes(true);
@@ -281,7 +289,9 @@ int main(int argc, char *argv[]) {
   }
   uint64_t dt_ns  = static_cast<uint64_t>(args.timeStep * 1e9);
   uint64_t dur_ns = static_cast<uint64_t>(args.duration * 1e9);
+  CPS::Logger::get(args.name)->info("Before publishConfig()");
   syncIntf->publishConfig(startAt, dt_ns, dur_ns);
+  CPS::Logger::get(args.name)->info("After publishConfig()");
   CPS::Logger::get(args.name)->info(
       "Published sync to {} (dt_ns={}, duration_ns={})", shmName, dt_ns, dur_ns);
 

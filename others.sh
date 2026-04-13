@@ -7,11 +7,11 @@ sudo systemctl set-property --runtime -- init.scope   AllowedCPUs=0-3
 
 sudo tee /etc/systemd/system/rt-leader.slice <<'EOF'
 [Slice]
-AllowedCPUs=14-15
+AllowedCPUs=10-15
 EOF
 sudo tee /etc/systemd/system/rt-follower.slice <<'EOF'
 [Slice]
-AllowedCPUs=4-13
+AllowedCPUs=4-9
 EOF
 sudo systemctl daemon-reload
 
