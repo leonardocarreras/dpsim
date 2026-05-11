@@ -14,6 +14,8 @@
 #include <dpsim/pybind/EMTComponents.h>
 #include <dpsim/pybind/Utils.h>
 
+PYBIND11_DECLARE_HOLDER_TYPE(T, CPS::AttributePointer<T>);
+
 #ifdef WITH_JSON
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
@@ -38,6 +40,7 @@ void addEMTComponents(py::module_ mEMT) {
       .def("set_initial_voltage",
            py::overload_cast<CPS::Complex, int>(
                &CPS::EMT::SimNode::setInitialVoltage, py::const_))
+      .def_readonly("mVoltage", &CPS::EMT::SimNode::mVoltage)
       .def_readonly_static("gnd", &CPS::EMT::SimNode::GND);
 
   py::module mEMTPh1 = mEMT.def_submodule(
@@ -220,8 +223,8 @@ void addEMTPh3Components(py::module_ mEMTPh3) {
                &CPS::EMT::Ph3::ControlledVoltageSource::setParameters),
            "V_ref"_a)
       .def("connect", &CPS::EMT::Ph3::ControlledVoltageSource::connect)
-      .def_property("V_ref", createAttributeGetter<CPS::MatrixComp>("V_ref"),
-                    createAttributeSetter<CPS::MatrixComp>("V_ref"));
+      .def_property("V_ref", createAttributeGetter<CPS::Matrix>("V_ref"),
+                    createAttributeSetter<CPS::Matrix>("V_ref"));
 
   py::class_<CPS::EMT::Ph3::CurrentSource,
              std::shared_ptr<CPS::EMT::Ph3::CurrentSource>,
@@ -233,11 +236,25 @@ void addEMTPh3Components(py::module_ mEMTPh3) {
            py::overload_cast<CPS::MatrixComp, CPS::Real>(
                &CPS::EMT::Ph3::CurrentSource::setParameters),
            "I_ref"_a, "f_src"_a = 50)
-      .def("connect", &CPS::EMT::Ph3::VoltageSource::connect)
+      .def("connect", &CPS::EMT::Ph3::CurrentSource::connect)
       .def_property("I_ref", createAttributeGetter<CPS::MatrixComp>("I_ref"),
-                    createAttributeSetter<CPS::MatrixComp>("V_ref"))
+                    createAttributeSetter<CPS::MatrixComp>("I_ref"))
       .def_property("f_src", createAttributeGetter<CPS::Real>("f_src"),
                     createAttributeSetter<CPS::Real>("f_src"));
+
+  py::class_<CPS::EMT::Ph3::ControlledCurrentSource,
+             std::shared_ptr<CPS::EMT::Ph3::ControlledCurrentSource>,
+             CPS::SimPowerComp<CPS::Real>>(mEMTPh3, "ControlledCurrentSource",
+                                           py::multiple_inheritance())
+      .def(py::init<std::string>())
+      .def(py::init<std::string, CPS::Logger::Level>())
+      .def("set_parameters",
+           py::overload_cast<CPS::Matrix>(
+               &CPS::EMT::Ph3::ControlledCurrentSource::setParameters),
+           "I_ref"_a)
+      .def_property("I_ref", createAttributeGetter<CPS::Matrix>("I_ref"),
+                    createAttributeSetter<CPS::Matrix>("I_ref"))
+      .def("connect", &CPS::EMT::Ph3::ControlledCurrentSource::connect);
 
   py::class_<CPS::EMT::Ph3::Resistor, std::shared_ptr<CPS::EMT::Ph3::Resistor>,
              CPS::SimPowerComp<CPS::Real>>(mEMTPh3, "Resistor",

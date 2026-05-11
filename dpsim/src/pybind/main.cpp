@@ -56,6 +56,7 @@ PYBIND11_MODULE(dpsimpy, m) {
       .value("off", CPS::Logger::Level::off);
 
   py::class_<CPS::Math>(m, "Math")
+      .def_static("polar", &CPS::Math::polar)
       .def_static("single_phase_variable_to_three_phase",
                   &CPS::Math::singlePhaseVariableToThreePhase)
       .def_static("single_phase_parameter_to_three_phase",
@@ -455,6 +456,10 @@ PYBIND11_MODULE(dpsimpy, m) {
       .def("connect", &CPS::SimPowerComp<CPS::Complex>::connect)
       .def("set_intf_current", &CPS::SimPowerComp<CPS::Complex>::setIntfCurrent)
       .def("set_intf_voltage", &CPS::SimPowerComp<CPS::Complex>::setIntfVoltage)
+      .def_readonly("mIntfVoltage",
+                    &CPS::SimPowerComp<CPS::Complex>::mIntfVoltage)
+      .def_readonly("mIntfCurrent",
+                    &CPS::SimPowerComp<CPS::Complex>::mIntfCurrent)
       .def("get_terminal", &CPS::SimPowerComp<CPS::Complex>::terminal,
            "index"_a);
   py::class_<CPS::SimPowerComp<CPS::Real>,
@@ -463,6 +468,10 @@ PYBIND11_MODULE(dpsimpy, m) {
       .def("connect", &CPS::SimPowerComp<CPS::Real>::connect)
       .def("set_intf_current", &CPS::SimPowerComp<CPS::Real>::setIntfCurrent)
       .def("set_intf_voltage", &CPS::SimPowerComp<CPS::Real>::setIntfVoltage)
+      .def_readonly("mIntfVoltage",
+                    &CPS::SimPowerComp<CPS::Real>::mIntfVoltage)
+      .def_readonly("mIntfCurrent",
+                    &CPS::SimPowerComp<CPS::Real>::mIntfCurrent)
       .def("get_terminal", &CPS::SimPowerComp<CPS::Real>::terminal, "index"_a);
   py::class_<CPS::TopologicalNode, std::shared_ptr<CPS::TopologicalNode>,
              CPS::IdentifiedObject>(m, "TopologicalNode")
