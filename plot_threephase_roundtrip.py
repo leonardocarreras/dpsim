@@ -98,20 +98,43 @@ def align_waveforms(raw_times, raw_sequences, raw_values, recon_times, recon_seq
     return aligned_times, common_sequences, aligned_raw, aligned_recon
 
 
+def estimate_delay(raw: np.ndarray, recon: np.ndarray, max_lag: int = 500) -> int:
+    """Return samples by which recon lags raw (positive = recon is delayed).
+
+    Uses np.correlate(recon, raw): peak at lag L means recon[k] best matches
+    raw[k - L], i.e., recon lags raw by L samples.
+    Skips the initial DFT startup transient before computing.
+    """
+    n = len(raw)
+    start = min(max_lag, n // 10)  # skip startup transient
+    r = raw[start:] - raw[start:].mean()
+    q = recon[start:] - recon[start:].mean()
+    # correlate(q, r): peak at L means q[k] ≈ r[k - L], i.e., q lags r by L
+    corr = np.correlate(q, r, mode='full')
+    lags = np.arange(-(len(q) - 1), len(q))
+    mask = np.abs(lags) <= max_lag
+    return int(lags[mask][np.argmax(corr[mask])])
+
+
 def plot_roundtrip(output_path: Path, times, sequences, raw_column_names, raw_values, recon_values, x_axis: str):
     phases = [index for index in raw_values.keys() if index in recon_values]
     x = sequences if x_axis == "sequence" else times
     x_label = "Sequence" if x_axis == "sequence" else "Time [s]"
 
+    # Estimate group delay once from phase 0 (applies to all phases equally)
+    delay = estimate_delay(raw_values[phases[0]], recon_values[phases[0]])
+
     fig, axes = plt.subplots(len(phases), 2, figsize=(14, 3.6 * len(phases)), sharex="col")
     if len(phases) == 1:
         axes = [axes]
 
-    fig.suptitle("Three-phase DP round-trip waveform comparison")
+    fig.suptitle(
+        f"Three-phase DP round-trip waveform comparison  "
+        f"[estimated DFT delay = {delay} samples]"
+    )
 
     for row_axes, phase in zip(axes, phases):
         ax_signal, ax_error = row_axes
-        error = recon_values[phase] - raw_values[phase]
         phase_label = raw_column_names[phase] if phase < len(raw_column_names) else f"phase_{phase}"
 
         ax_signal.plot(x, raw_values[phase], label="original", linewidth=1.0)
@@ -121,8 +144,29 @@ def plot_roundtrip(output_path: Path, times, sequences, raw_column_names, raw_va
         ax_signal.grid(True)
         ax_signal.legend(loc="upper right")
 
-        ax_error.plot(x, error, color="tab:red", linewidth=1.0)
-        ax_error.set_title(f"{phase_label}: reconstructed - original")
+        # Delay-corrected error: align recon against raw shifted by the DFT delay.
+        # recon[k] ≈ raw[k - delay], so compare recon[delay:] with raw[:-delay].
+        if delay > 0 and delay < len(raw_values[phase]):
+            # recon lags raw: recon[delay+k] ≈ raw[k]
+            raw_aligned = raw_values[phase][:-delay]
+            recon_aligned = recon_values[phase][delay:]
+            x_aligned = x[:-delay]
+            error_label = f"delay-corrected error (shift={delay} samples)"
+        elif delay < 0 and -delay < len(raw_values[phase]):
+            # recon leads raw: raw[-delay+k] ≈ recon[k]
+            raw_aligned = raw_values[phase][-delay:]
+            recon_aligned = recon_values[phase][:delay]
+            x_aligned = x[-delay:]
+            error_label = f"delay-corrected error (shift={delay} samples)"
+        else:
+            raw_aligned = raw_values[phase]
+            recon_aligned = recon_values[phase]
+            x_aligned = x
+            error_label = "error (no delay detected)"
+
+        error = recon_aligned - raw_aligned
+        ax_error.plot(x_aligned, error, color="tab:red", linewidth=1.0)
+        ax_error.set_title(f"{phase_label}: {error_label}")
         ax_error.set_ylabel("Error")
         ax_error.grid(True)
 
