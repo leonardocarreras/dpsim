@@ -903,10 +903,15 @@ Reader::mapSynchronousMachine(CIMPP::SynchronousMachine *machine) {
                                    setPointVoltage);
               } else {
                 if (mMappingMode == MappingMode::CgmesPowerFlow) {
-                  // Map all SGs without RegulatingControl as PV using rated
-                  // voltage as setpoint.
+                  // No RegulatingControl: treat as PQ using equipment P/Q and
+                  // rated voltage as setpoint.
+                  isPQNode = true;
                   setPointVoltage =
                       unitValue(machine->ratedU.value, UnitMultiplier::k);
+                  setPointActivePower =
+                      unitValue(machine->p, UnitMultiplier::M);
+                  setPointReactivePower =
+                      unitValue(machine->q, UnitMultiplier::M);
                 }
                 std::cerr << "Uninitalized setPointVoltage for GeneratingUnit "
                           << machineName << ". Using default value of "
@@ -940,7 +945,8 @@ Reader::mapSynchronousMachine(CIMPP::SynchronousMachine *machine) {
               Real baseVoltage =
                   determineBaseVoltageAssociatedWithEquipment(machine);
               if (isPQNode) {
-                // Map static generators (PQ) as loads with negative PQ values.
+                // Map static generators (PQ) as loads with negated P/Q so the
+                // load represents generator injection, not consumption.
                 auto gen = std::make_shared<SP::Ph1::Load>(
                     machineRid, machineName, mComponentLogLevel);
                 gen->setParameters(-setPointActivePower, -setPointReactivePower,
