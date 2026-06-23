@@ -47,6 +47,8 @@ class ExternalNetworkInjection;
 class EnergyConsumer;
 class PowerTransformer;
 class EquivalentShunt;
+class LinearShuntCompensator;
+class StaticVarCompensator;
 class TopologicalNode;
 class ConductingEquipment;
 }; // namespace CIMPP
@@ -73,6 +75,12 @@ template <typename T> const auto &cimString(const T &field) {
 }
 
 class InvalidTopology {};
+
+/// Selects how CIM components are mapped.
+/// Default: legacy/simple-CIM compatible behavior.
+/// CgmesPowerFlow: CGMES power-flow behavior using equipment P/Q,
+/// absolute voltage setpoints, PQ shunt equivalents, and VD reference generators.
+enum class MappingMode { Default, CgmesPowerFlow };
 
 class Reader {
 private:
@@ -116,6 +124,9 @@ private:
   Bool mSetShuntConductance = false;
   /// global shunt resistor value
   Real mShuntConductanceValue = 1e-6;
+  /// Mapping behavior. Default keeps legacy/simple-CIM behavior. CgmesPowerFlow
+  /// enables the CGMES power-flow specific mappings.
+  MappingMode mMappingMode = MappingMode::Default;
 
   // #### General Functions ####
   /// Resolves unit multipliers.
@@ -164,6 +175,10 @@ private:
   mapExternalNetworkInjection(CIMPP::ExternalNetworkInjection *extnet);
   /// Returns a shunt
   TopologicalPowerComp::Ptr mapEquivalentShunt(CIMPP::EquivalentShunt *shunt);
+  TopologicalPowerComp::Ptr
+  mapLinearShuntCompensator(CIMPP::LinearShuntCompensator *shunt);
+  TopologicalPowerComp::Ptr
+  mapStaticVarCompensator(CIMPP::StaticVarCompensator *svc);
 
   // #### Helper Functions ####
   /// Determine base voltage associated with object
@@ -203,6 +218,10 @@ public:
   void setShuntConductance(Real v);
   /// If set, some components like loads include protection switches
   void useProtectionSwitches(Bool value = true);
+
+  /// Selects how CIM components are mapped (see MappingMode).
+  void setMappingMode(MappingMode mode);
+  MappingMode mappingMode() const;
 };
 } // namespace CIM
 } // namespace CPS
