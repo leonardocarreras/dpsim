@@ -903,7 +903,8 @@ Reader::mapSynchronousMachine(CIMPP::SynchronousMachine *machine) {
                                    setPointVoltage);
               } else {
                 if (mMappingMode == MappingMode::CgmesPowerFlow) {
-                  isPQNode = true;
+                  // Map all SGs without RegulatingControl as PV using rated
+                  // voltage as setpoint.
                   setPointVoltage =
                       unitValue(machine->ratedU.value, UnitMultiplier::k);
                 }
@@ -1141,9 +1142,15 @@ Reader::mapExternalNetworkInjection(CIMPP::ExternalNetworkInjection *extnet) {
         if (extnet->RegulatingControl) {
           SPDLOG_LOGGER_INFO(mSLog, "       Voltage set-point={}",
                              (float)extnet->RegulatingControl->targetValue);
-          cpsextnet->setParameters(
-              extnet->RegulatingControl->targetValue *
-              baseVoltage); // assumes that value is specified in CIM data in per unit
+          if (mMappingMode == MappingMode::CgmesPowerFlow) {
+            // CGMES files provide targetValue as an absolute voltage (SI).
+            cpsextnet->setParameters(unitValue(
+                extnet->RegulatingControl->targetValue, UnitMultiplier::k));
+          } else {
+            // Default: targetValue is interpreted as per-unit.
+            cpsextnet->setParameters(extnet->RegulatingControl->targetValue *
+                                     baseVoltage);
+          }
         } else {
           SPDLOG_LOGGER_INFO(
               mSLog, "       No voltage set-point defined. Using 1 per unit.");
