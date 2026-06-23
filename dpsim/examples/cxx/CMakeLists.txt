@@ -225,6 +225,8 @@ if(WITH_CIM)
 		# IEEE 39 examples
 		CIM/EMT_IEEE_39bus_CIM.cpp
 		CIM/EMT_IEEE_39bus_Multi_CIM.cpp
+
+		CIM/CGMES_CIM_PF.cpp
 	)
 
 	list(APPEND TEST_SOURCES
