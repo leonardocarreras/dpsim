@@ -12,7 +12,6 @@ using namespace CPS;
 
 SP::Ph1::Shunt::Shunt(String uid, String name, Logger::Level logLevel)
     : SimPowerComp<Complex>(uid, name, logLevel),
-      mBaseVoltage(mAttributes->create<Real>("base_voltage")),
       mConductance(mAttributes->create<Real>("G")),
       mSusceptance(mAttributes->create<Real>("B")),
       mConductancePerUnit(mAttributes->create<Real>("Gpu")),
@@ -32,7 +31,7 @@ void SP::Ph1::Shunt::setParameters(Real conductance, Real susceptance) {
 
 // #### Powerflow section ####
 void SP::Ph1::Shunt::setBaseVoltage(Real baseVoltage) {
-  **mBaseVoltage = baseVoltage;
+  mBaseVoltage = baseVoltage;
 }
 
 void SP::Ph1::Shunt::calculatePerUnitParameters(Real baseApparentPower,
@@ -41,11 +40,10 @@ void SP::Ph1::Shunt::calculatePerUnitParameters(Real baseApparentPower,
                      **mName);
   SPDLOG_LOGGER_INFO(mSLog, "Base Power={} [VA]  Base Omega={} [1/s]",
                      baseApparentPower, baseOmega);
-  auto baseImpedance =
-      ((**mBaseVoltage) * (**mBaseVoltage)) / baseApparentPower;
+  auto baseImpedance = (mBaseVoltage * mBaseVoltage) / baseApparentPower;
   auto baseAdmittance = 1.0 / baseImpedance;
   SPDLOG_LOGGER_INFO(mSLog, "Base Voltage={} [V]  Base Admittance={} [S]",
-                     (**mBaseVoltage), baseAdmittance);
+                     mBaseVoltage, baseAdmittance);
 
   **mConductancePerUnit = **mConductance / baseAdmittance;
   **mSusceptancePerUnit = **mSusceptance / baseAdmittance;

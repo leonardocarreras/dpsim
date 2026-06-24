@@ -27,8 +27,6 @@ public:
   const Attribute<Real>::Ptr mConductancePerUnit;
   /// Susceptance [pu]
   const Attribute<Real>::Ptr mSusceptancePerUnit;
-  /// Base voltage [V]
-  const Attribute<Real>::Ptr mBaseVoltage;
 
 public:
   /// Defines UID, name, component parameters and logging level
@@ -49,6 +47,10 @@ public:
   void calculatePerUnitParameters(Real baseApparentPower, Real baseOmega);
   /// Stamps admittance matrix
   void pfApplyAdmittanceMatrixStamp(SparseMatrixCompRow &Y);
+
+private:
+  /// Base voltage [V]
+  Real mBaseVoltage = 0;
 };
 } // namespace Ph1
 } // namespace SP

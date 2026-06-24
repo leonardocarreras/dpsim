@@ -39,7 +39,7 @@ private:
 
   // #### Powerflow section ####
   /// Base voltage [V]
-  const Attribute<Real>::Ptr mBaseVoltage;
+  Real mBaseVoltage = 0;
 
 public:
   const Attribute<Complex>::Ptr mVoltageRef;

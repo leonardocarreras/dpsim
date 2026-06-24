@@ -26,6 +26,8 @@ protected:
   UInt mNumFreqs = 0;
   ///
   Task::List mMnaTasks;
+  /// Base voltage [V]
+  Real mBaseVoltage = 0;
 
 public:
   typedef VarType Type;
@@ -38,10 +40,6 @@ public:
   const typename Attribute<MatrixVar<VarType>>::Ptr mVoltage;
   /// Power injected at node
   const typename Attribute<MatrixVar<VarType>>::Ptr mApparentPower;
-
-  // #### Powerflow section ####
-  /// Base voltage [V]
-  const Attribute<Real>::Ptr mBaseVoltage;
 
   /// This very general constructor is used by other constructors.
   SimNode(String uid, String name, std::vector<UInt> matrixNodeIndex,
