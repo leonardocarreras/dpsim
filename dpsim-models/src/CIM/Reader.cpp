@@ -608,9 +608,13 @@ Reader::mapPowerTransformer(CIMPP::PowerTransformer *trans) {
   } else if (mDomain == Domain::SP) {
     auto transformer = std::make_shared<SP::Ph1::Transformer>(
         transRid, cimString(trans->name), mComponentLogLevel);
+    // Only feed the shunt charging into the power-flow model in CGMES mode;
+    // Default mode keeps the legacy behaviour unchanged.
+    Real shuntCapacitance =
+        mMappingMode == MappingMode::CgmesPowerFlow ? capacitance : 0;
     transformer->setParameters(voltageNode1, voltageNode2, ratedPower, ratioAbs,
-                               ratioPhase, resistance, inductance, capacitance,
-                               0);
+                               ratioPhase, resistance, inductance,
+                               shuntCapacitance, 0);
     Real baseVolt = voltageNode1 >= voltageNode2 ? voltageNode1 : voltageNode2;
     transformer->setBaseVoltage(baseVolt);
     return transformer;
