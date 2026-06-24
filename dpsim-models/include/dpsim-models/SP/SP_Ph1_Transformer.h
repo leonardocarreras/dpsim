@@ -68,6 +68,8 @@ private:
   Real mBaseImpedance;
   /// base inductance [H]
   Real mBaseInductance;
+  /// base capacitance [F]
+  Real mBaseCapacitance;
   /// base admittance [S]
   Real mBaseAdmittance;
   ///base omega [1/s]
@@ -82,6 +84,8 @@ private:
   Real mReactancePerUnit;
   /// inductance
   Real mInductancePerUnit;
+  /// shunt capacitance
+  Real mCapacitancePerUnit;
   /// leakage impedance
   Complex mLeakagePerUnit;
   /// magnetizing impedance
@@ -130,7 +134,8 @@ public:
   /// Set transformer specific parameters
   void setParameters(Real nomVoltageEnd1, Real nomVoltageEnd2, Real ratedPower,
                      Real ratioAbs, Real ratioPhase, Real resistance,
-                     Real inductance);
+                     Real inductance, Real capacitance = 0,
+                     Real conductance = 0);
   /// Constructs and registers MNA subcomponents; idempotent.
   void createSubComponents() override;
   /// Initializes component from power flow data

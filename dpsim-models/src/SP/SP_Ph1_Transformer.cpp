@@ -66,13 +66,16 @@ void SP::Ph1::Transformer::setParameters(Real nomVoltageEnd1,
 void SP::Ph1::Transformer::setParameters(Real nomVoltageEnd1,
                                          Real nomVoltageEnd2, Real ratedPower,
                                          Real ratioAbs, Real ratioPhase,
-                                         Real resistance, Real inductance) {
+                                         Real resistance, Real inductance,
+                                         Real capacitance, Real conductance) {
 
   **mRatedPower = ratedPower;
   SPDLOG_LOGGER_INFO(mSLog, "Rated Power ={} [W]", **mRatedPower);
 
   SP::Ph1::Transformer::setParameters(nomVoltageEnd1, nomVoltageEnd2, ratioAbs,
                                       ratioPhase, resistance, inductance);
+  **mCapacitance = capacitance;
+  **mConductance = conductance;
 }
 
 /// DEPRECATED: Delete method
@@ -80,7 +83,7 @@ SimPowerComp<Complex>::Ptr SP::Ph1::Transformer::clone(String name) {
   auto copy = Transformer::make(name, mLogLevel);
   copy->setParameters(mNominalVoltageEnd1, mNominalVoltageEnd2, **mRatedPower,
                       std::abs(**mRatio), std::arg(**mRatio), **mResistance,
-                      **mInductance);
+                      **mInductance, **mCapacitance, **mConductance);
   return copy;
 }
 
@@ -277,6 +280,10 @@ void SP::Ph1::Transformer::calculatePerUnitParameters(Real baseApparentPower,
   mLeakagePerUnit = Complex(mResistancePerUnit, 1. * mInductancePerUnit);
   SPDLOG_LOGGER_INFO(mSLog, "Leakage Impedance={} [pu] ", mLeakagePerUnit);
 
+  mBaseCapacitance = 1.0 / mBaseOmega / mBaseImpedance;
+  mCapacitancePerUnit = **mCapacitance / mBaseCapacitance;
+  SPDLOG_LOGGER_INFO(mSLog, "Shunt Capacitance={} [pu] ", mCapacitancePerUnit);
+
   mRatioAbsPerUnit = mRatioAbs / mNominalVoltageEnd1 * mNominalVoltageEnd2;
   SPDLOG_LOGGER_INFO(mSLog, "Tap Ratio={} [pu]", mRatioAbsPerUnit);
 
@@ -293,14 +300,23 @@ void SP::Ph1::Transformer::calculatePerUnitParameters(Real baseApparentPower,
 
 void SP::Ph1::Transformer::pfApplyAdmittanceMatrixStamp(
     SparseMatrixCompRow &Y) {
+  // A meaningful per-unit shunt susceptance means the transformer carries its
+  // own physical charging path to ground; the artificial snubbers are then
+  // redundant and must not pollute the power-flow admittance (NaN-safe compare).
+  Bool hasChargingShunt = std::abs(mCapacitancePerUnit) > 1e-9;
+
   // calculate matrix stamp
   mY_element = MatrixComp(2, 2);
   Complex y = Complex(1, 0) / mLeakagePerUnit;
+  // Nominal-pi shunt admittance split across both ends.
+  Complex ys = hasChargingShunt
+                   ? Complex(0, mCapacitancePerUnit) / Complex(2, 0)
+                   : Complex(0, 0);
 
-  mY_element(0, 0) = y;
+  mY_element(0, 0) = y + ys;
   mY_element(0, 1) = -y * mRatioAbsPerUnit;
   mY_element(1, 0) = -y * mRatioAbsPerUnit;
-  mY_element(1, 1) = y * std::pow(mRatioAbsPerUnit, 2);
+  mY_element(1, 1) = (y + ys) * std::pow(mRatioAbsPerUnit, 2);
 
   //check for inf or nan
   for (int i = 0; i < 2; i++)
@@ -328,14 +344,18 @@ void SP::Ph1::Transformer::pfApplyAdmittanceMatrixStamp(
 
   SPDLOG_LOGGER_INFO(mSLog, "#### Y matrix stamping: {}", mY_element);
 
-  if (mSubSnubResistor1)
-    mSubSnubResistor1->pfApplyAdmittanceMatrixStamp(Y);
-  if (mSubSnubResistor2)
-    mSubSnubResistor2->pfApplyAdmittanceMatrixStamp(Y);
-  if (mSubSnubCapacitor1)
-    mSubSnubCapacitor1->pfApplyAdmittanceMatrixStamp(Y);
-  if (mSubSnubCapacitor2)
-    mSubSnubCapacitor2->pfApplyAdmittanceMatrixStamp(Y);
+  // Snubbers are an MNA conditioning aid, not part of the physical model; only
+  // let them into the power-flow stamp when no real charging shunt grounds the node.
+  if (!hasChargingShunt) {
+    if (mSubSnubResistor1)
+      mSubSnubResistor1->pfApplyAdmittanceMatrixStamp(Y);
+    if (mSubSnubResistor2)
+      mSubSnubResistor2->pfApplyAdmittanceMatrixStamp(Y);
+    if (mSubSnubCapacitor1)
+      mSubSnubCapacitor1->pfApplyAdmittanceMatrixStamp(Y);
+    if (mSubSnubCapacitor2)
+      mSubSnubCapacitor2->pfApplyAdmittanceMatrixStamp(Y);
+  }
 }
 
 void SP::Ph1::Transformer::updateBranchFlow(VectorComp &current,

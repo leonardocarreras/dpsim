@@ -30,21 +30,30 @@ public:
   const Attribute<Real>::Ptr mResistance;
   /// Inductance [H]
   const Attribute<Real>::Ptr mInductance;
+  /// Shunt capacitance [F]
+  const Attribute<Real>::Ptr mCapacitance;
+  /// Shunt conductance [S]
+  const Attribute<Real>::Ptr mConductance;
 
   explicit Transformer(CPS::AttributeList::Ptr attributeList)
       : mRatedPower(attributeList->create<Real>("S")),
         mRatio(attributeList->create<Complex>("ratio")),
         mResistance(attributeList->create<Real>("R")),
-        mInductance(attributeList->create<Real>("L")){};
+        mInductance(attributeList->create<Real>("L")),
+        mCapacitance(attributeList->create<Real>("C")),
+        mConductance(attributeList->create<Real>("G")){};
 
   ///
   void setParameters(Real nomVoltageEnd1, Real nomVoltageEnd2, Real ratioAbs,
-                     Real ratioPhase, Real resistance, Real inductance) {
+                     Real ratioPhase, Real resistance, Real inductance,
+                     Real capacitance = 0, Real conductance = 0) {
     mNominalVoltageEnd1 = nomVoltageEnd1;
     mNominalVoltageEnd2 = nomVoltageEnd2;
     **mRatio = std::polar<Real>(ratioAbs, ratioPhase);
     **mResistance = resistance;
     **mInductance = inductance;
+    **mCapacitance = capacitance;
+    **mConductance = conductance;
   }
 };
 } // namespace Ph1
