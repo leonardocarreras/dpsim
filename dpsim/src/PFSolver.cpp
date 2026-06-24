@@ -231,6 +231,13 @@ void PFSolver::determinePFBusType() {
           node->name());
       mVDBusIndices.push_back(node->matrixNodeIndex());
       mVDBuses.push_back(node);
+    } // VD and PQ type component connect -> set as VD bus (load absorbed by slack)
+    else if (!connectedPV && connectedPQ && connectedVD) {
+      SPDLOG_LOGGER_INFO(
+          mSLog, "{}: VD and PQ type component connect -> set as VD bus",
+          node->name());
+      mVDBusIndices.push_back(node->matrixNodeIndex());
+      mVDBuses.push_back(node);
     } else {
       std::stringstream ss;
       ss << "Node>>" << node->name()
