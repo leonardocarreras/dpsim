@@ -572,19 +572,23 @@ Reader::mapPowerTransformer(CIMPP::PowerTransformer *trans) {
   if (voltageNode1 >= voltageNode2 && abs(end1->x.value) > 1e-12) {
     inductance = end1->x.value / mOmega;
     resistance = end1->r.value;
-    capacitance = end1->b.value / mOmega;
+    if (end1->b.initialized)
+      capacitance = end1->b.value / mOmega;
   } else if (voltageNode1 >= voltageNode2 && abs(end2->x.value) > 1e-12) {
     inductance = end2->x.value / mOmega * std::pow(ratioAbsNominal, 2);
     resistance = end2->r.value * std::pow(ratioAbsNominal, 2);
-    capacitance = end2->b.value / mOmega * std::pow(ratioAbsNominal, 2);
+    if (end2->b.initialized)
+      capacitance = end2->b.value / mOmega * std::pow(ratioAbsNominal, 2);
   } else if (voltageNode2 > voltageNode1 && abs(end2->x.value) > 1e-12) {
     inductance = end2->x.value / mOmega;
     resistance = end2->r.value;
-    capacitance = end2->b.value / mOmega;
+    if (end2->b.initialized)
+      capacitance = end2->b.value / mOmega;
   } else if (voltageNode2 > voltageNode1 && abs(end1->x.value) > 1e-12) {
     inductance = end1->x.value / mOmega / std::pow(ratioAbsNominal, 2);
     resistance = end1->r.value / std::pow(ratioAbsNominal, 2);
-    capacitance = end1->b.value / mOmega / std::pow(ratioAbsNominal, 2);
+    if (end1->b.initialized)
+      capacitance = end1->b.value / mOmega / std::pow(ratioAbsNominal, 2);
   }
 
   if (mDomain == Domain::EMT) {
@@ -957,7 +961,8 @@ Reader::mapSynchronousMachine(CIMPP::SynchronousMachine *machine) {
                                    baseVoltage);
                 gen->modifyPowerFlowBusType(PowerflowBusType::PQ);
                 return gen;
-              } else if (machine->referencePriority) {
+              } else if (machine->referencePriority.initialized &&
+                         machine->referencePriority) {
                 // Map reference generators as VD node.
                 auto gen = std::make_shared<SP::Ph1::SynchronGenerator>(
                     machineRid, machineName, mComponentLogLevel);
