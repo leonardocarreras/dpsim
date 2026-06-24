@@ -373,6 +373,12 @@ Reader::mapEnergyConsumer(CIMPP::EnergyConsumer *consumer) {
         p = unitValue(consumer->p.value, UnitMultiplier::M);
       if (consumer->q.initialized)
         q = unitValue(consumer->q.value, UnitMultiplier::M);
+      if (!consumer->p.initialized && !consumer->q.initialized)
+        SPDLOG_LOGGER_WARN(mSLog,
+                           "EnergyConsumer {} has no P/Q in the SSH profile; "
+                           "treating it as zero load. Is the SSH profile "
+                           "missing (or did you mean Default mapping mode)?",
+                           consumerName);
       load->setParameters(p, q, baseVoltage);
     }
 
@@ -528,14 +534,18 @@ Reader::mapPowerTransformer(CIMPP::PowerTransformer *trans) {
   }
 
   Real ratedPower = unitValue(end1->ratedS.value, UnitMultiplier::M);
+  // Prefer the nominal system voltage; fall back to the rated end voltage when
+  // the end has no BaseVoltage association.
   Real voltageNode1 =
-      unitValue(end1->BaseVoltage->nominalVoltage, UnitMultiplier::k);
+      end1->BaseVoltage
+          ? unitValue(end1->BaseVoltage->nominalVoltage, UnitMultiplier::k)
+          : unitValue(end1->ratedU.value, UnitMultiplier::k);
   Real voltageNode2 =
-      unitValue(end2->BaseVoltage->nominalVoltage, UnitMultiplier::k);
+      end2->BaseVoltage
+          ? unitValue(end2->BaseVoltage->nominalVoltage, UnitMultiplier::k)
+          : unitValue(end2->ratedU.value, UnitMultiplier::k);
 
-  Real ratioAbsNominal =
-      unitValue(end1->BaseVoltage->nominalVoltage, UnitMultiplier::k) /
-      unitValue(end2->BaseVoltage->nominalVoltage, UnitMultiplier::k);
+  Real ratioAbsNominal = voltageNode1 / voltageNode2;
   Real ratioAbs = unitValue(end1->ratedU.value, UnitMultiplier::k) /
                   unitValue(end2->ratedU.value, UnitMultiplier::k);
 
