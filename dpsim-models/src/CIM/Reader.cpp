@@ -1307,6 +1307,11 @@ void Reader::processTopologicalNode(CIMPP::TopologicalNode *topNode) {
                        nodeRid, cimString(topNode->name),
                        mPowerflowNodes[nodeRid]->matrixNodeIndex());
 
+  // In CGMES power-flow mode, set the node base voltage from the topology.
+  if (mMappingMode == MappingMode::CgmesPowerFlow && topNode->BaseVoltage)
+    mPowerflowNodes[nodeRid]->setBaseVoltage(unitValue(
+        topNode->BaseVoltage->nominalVoltage.value, UnitMultiplier::k));
+
   for (auto term : topNode->Terminal) {
     // Insert Terminal if it does not exist in the map and add reference to node.
     // This could be optimized because the Terminal is searched twice.
