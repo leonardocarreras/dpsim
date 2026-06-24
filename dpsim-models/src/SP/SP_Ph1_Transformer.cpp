@@ -323,9 +323,8 @@ void SP::Ph1::Transformer::pfApplyAdmittanceMatrixStamp(
     for (int j = 0; j < 2; j++)
       if (std::isinf(mY_element.coeff(i, j).real()) ||
           std::isinf(mY_element.coeff(i, j).imag())) {
-        std::cout << mY_element << std::endl;
-        std::cout << "Zl:" << mLeakage << std::endl;
-        std::cout << "tap:" << mRatioAbsPerUnit << std::endl;
+        SPDLOG_LOGGER_ERROR(mSLog, "Y={} Zl={} tap={}", mY_element, mLeakage,
+                            mRatioAbsPerUnit);
         std::stringstream ss;
         ss << "Transformer>>" << this->name()
            << ": infinite or nan values in the element Y at: " << i << "," << j;

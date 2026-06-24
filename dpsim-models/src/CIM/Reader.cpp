@@ -272,9 +272,9 @@ void Reader::processSvVoltage(CIMPP::SvVoltage *volt) {
     SPDLOG_LOGGER_INFO(mSLog, "    Angle={}", (float)volt->angle.value);
   } catch (ReadingUninitializedField *e) {
     volt->angle.value = 0;
-    std::cerr << "Uninitialized Angle for SVVoltage at "
-              << volt->TopologicalNode->name << ".Setting default value of "
-              << volt->angle.value << std::endl;
+    SPDLOG_LOGGER_WARN(
+        mSLog, "Uninitialized Angle for SVVoltage at {}. Setting default of {}",
+        cimString(volt->TopologicalNode->name), volt->angle.value);
   }
   Real voltagePhase = volt->angle.value * PI / 180;
   mPowerflowNodes[nodeRid]->setInitialVoltage(
@@ -898,10 +898,10 @@ Reader::mapSynchronousMachine(CIMPP::SynchronousMachine *machine) {
                 SPDLOG_LOGGER_INFO(mSLog, "    setPointActivePower={}",
                                    setPointActivePower);
               } catch (ReadingUninitializedField *e) {
-                std::cerr
-                    << "Uninitalized setPointActivePower for GeneratingUnit "
-                    << machineName << ". Using default value of "
-                    << setPointActivePower << std::endl;
+                SPDLOG_LOGGER_WARN(mSLog,
+                                   "Uninitialized setPointActivePower for "
+                                   "GeneratingUnit {}. Using default of {}",
+                                   machineName, setPointActivePower);
               }
               if (machine->RegulatingControl) {
                 setPointVoltage =
@@ -921,9 +921,10 @@ Reader::mapSynchronousMachine(CIMPP::SynchronousMachine *machine) {
                   setPointReactivePower =
                       unitValue(machine->q, UnitMultiplier::M);
                 }
-                std::cerr << "Uninitalized setPointVoltage for GeneratingUnit "
-                          << machineName << ". Using default value of "
-                          << setPointVoltage << std::endl;
+                SPDLOG_LOGGER_WARN(mSLog,
+                                   "Uninitialized setPointVoltage for "
+                                   "GeneratingUnit {}. Using default of {}",
+                                   machineName, setPointVoltage);
               }
               try {
                 maximumReactivePower =
@@ -931,10 +932,10 @@ Reader::mapSynchronousMachine(CIMPP::SynchronousMachine *machine) {
                 SPDLOG_LOGGER_INFO(mSLog, "    maximumReactivePower={}",
                                    maximumReactivePower);
               } catch (ReadingUninitializedField *e) {
-                std::cerr
-                    << "Uninitalized maximumReactivePower for GeneratingUnit "
-                    << machineName << ". Using default value of "
-                    << maximumReactivePower << std::endl;
+                SPDLOG_LOGGER_WARN(mSLog,
+                                   "Uninitialized maximumReactivePower for "
+                                   "GeneratingUnit {}. Using default of {}",
+                                   machineName, maximumReactivePower);
               }
               if (mMappingMode != MappingMode::CgmesPowerFlow) {
                 // Default: map as PV node (legacy behavior).
@@ -1172,7 +1173,7 @@ Reader::mapExternalNetworkInjection(CIMPP::ExternalNetworkInjection *extnet) {
           cpsextnet->setParameters(1. * baseVoltage);
         }
       } catch (ReadingUninitializedField *e) {
-        std::cerr << "Ignore incomplete RegulatingControl" << std::endl;
+        SPDLOG_LOGGER_WARN(mSLog, "Ignore incomplete RegulatingControl");
       }
 
       return cpsextnet;
