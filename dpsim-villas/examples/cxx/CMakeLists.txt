@@ -34,6 +34,31 @@ set(DPSIM_VILLAS_EXAMPLE_SOURCES
 	SharedMemExample.cpp
 )
 
+# Co-simulation examples. The canonical WSCC 9-bus DP to EMT pair plus a matrix
+# of minimal interface-transmission (ITM) teaching examples under cosim/basics.
+# All use header-only scenario data, so there is no WITH_CIM dependency.
+set(DPSIM_VILLAS_COSIM_SOURCES
+	cosim/EMT_Ph3_9bus_load6_cosim_leader.cpp
+	cosim/DP_Ph1_9bus_4order_cosim_follower.cpp
+	cosim/basics/EMTEMT_simple_cosim_leader_Isrc.cpp
+	cosim/basics/EMTEMT_simple_cosim_follower_Vsrc.cpp
+	cosim/basics/EMTEMT_simple_cosim_leader_Vsrc.cpp
+	cosim/basics/EMTEMT_simple_cosim_follower_Isrc.cpp
+	cosim/basics/DPDP_simple_cosim_leader_Isrc.cpp
+	cosim/basics/DPDP_simple_cosim_follower_Vsrc.cpp
+	cosim/basics/DPDP_simple_cosim_leader_Vsrc.cpp
+	cosim/basics/DPDP_simple_cosim_follower_Isrc.cpp
+	cosim/basics/EMTDP_simple_cosim_leader_Isrc.cpp
+	cosim/basics/EMTDP_simple_cosim_follower_Vsrc.cpp
+	cosim/basics/EMTDP_simple_cosim_leader_Vsrc.cpp
+	cosim/basics/EMTDP_simple_cosim_follower_Isrc.cpp
+	cosim/basics/DPEMT_simple_cosim_leader_Isrc.cpp
+	cosim/basics/DPEMT_simple_cosim_follower_Vsrc.cpp
+	cosim/basics/DPEMT_simple_cosim_leader_Vsrc.cpp
+	cosim/basics/DPEMT_simple_cosim_follower_Isrc.cpp
+)
+list(APPEND DPSIM_VILLAS_EXAMPLE_SOURCES ${DPSIM_VILLAS_COSIM_SOURCES})
+
 set(DPSIM_VILLAS_DEPRECATED_BASE
 	deprecated/ShmemExample.cpp
 	deprecated/ShmemDistributedReference.cpp
