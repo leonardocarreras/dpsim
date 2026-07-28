@@ -14,7 +14,10 @@ authors = [
 ]
 description = "dynamic real-time power system simulator"
 readme = {file = "README.md", content-type = "text/markdown"}
-license = "MPL-2.0"
+# Apache-2.0 sources (MNASimPowerComp, CompositePowerComp, ...) compile in too, and
+# the Windows wheels also carry the vendored getopt in dpsim/Compat.
+license = "MPL-2.0 AND Apache-2.0 AND ISC AND BSD-2-Clause"
+license-files = ["LICENSE", "LICENSES/*"]
 classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
