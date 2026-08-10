@@ -14,6 +14,7 @@ add_library(dpsim-models STATIC
 )
 
 list(APPEND MODELS_SOURCES
+	Base/Base_HalfDecouplingLine.cpp
 	Base/Base_ReducedOrderSynchronGenerator.cpp
 	Base/Base_SynchronGenerator.cpp
 	Base/Base_AvVoltageSourceInverterDQ.cpp
