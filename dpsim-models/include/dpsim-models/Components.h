@@ -15,6 +15,7 @@
 #include <dpsim-models/SP/SP_Ph1_ControlledVoltageSource.h>
 #include <dpsim-models/SP/SP_Ph1_DecouplingIdealTransformer.h>
 #include <dpsim-models/SP/SP_Ph1_DecouplingLine.h>
+#include <dpsim-models/SP/SP_Ph1_HalfDecouplingLine.h>
 #include <dpsim-models/SP/SP_Ph1_Load.h>
 #include <dpsim-models/SP/SP_Ph1_NetworkInjection.h>
 #include <dpsim-models/SP/SP_Ph1_PQNode.h>

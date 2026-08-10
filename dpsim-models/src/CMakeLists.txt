@@ -210,6 +210,7 @@ list(APPEND MODELS_SOURCES
 	SP/SP_Ph3_VoltageSource.cpp
 	SP/SP_Ph1_DecouplingIdealTransformer.cpp
 	SP/SP_Ph1_DecouplingLine.cpp
+	SP/SP_Ph1_HalfDecouplingLine.cpp
 
 	Signal/ExciterDC1.cpp
 	Signal/ExciterDC1Simp.cpp
