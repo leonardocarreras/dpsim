@@ -49,7 +49,8 @@ void decoupleLine(SystemTopology &sys, const String &lineName,
   sys.addComponent(halfLineB);
 }
 
-void doSim(String &name, SystemTopology &sys, Int threads) {
+void doSim(String &name, SystemTopology &sys, Int threads, Real timeStep,
+           Real duration) {
 
   // Logging
   auto logger = DataLogger::make(name);
@@ -62,8 +63,8 @@ void doSim(String &name, SystemTopology &sys, Int threads) {
 
   Simulation sim(name, Logger::Level::debug);
   sim.setSystem(sys);
-  sim.setTimeStep(0.0001);
-  sim.setFinalTime(0.5);
+  sim.setTimeStep(timeStep);
+  sim.setFinalTime(duration);
   sim.setDomain(Domain::EMT);
   sim.doSplitSubnets(true);
   sim.doInitFromNodesAndTerminals(true);
@@ -79,7 +80,7 @@ void doSim(String &name, SystemTopology &sys, Int threads) {
 }
 
 int main(int argc, char *argv[]) {
-  CommandLineArgs args(argc, argv);
+  CommandLineArgs args(argc, argv, "WSCC-9bus_split_half", 1e-4, 0.5, 60);
 
   std::list<fs::path> filenames;
   filenames = DPsim::Utils::findFiles(
@@ -107,7 +108,7 @@ int main(int argc, char *argv[]) {
       readerMonolithic.loadCIM(60, filenames, Domain::EMT, PhaseType::ABC,
                                CPS::GeneratorType::IdealVoltageSource);
 
-  doSim(simNameMonolithic, systemMonolithic, 0);
+  doSim(simNameMonolithic, systemMonolithic, 0, args.timeStep, args.duration);
 
   // Decoupled Simulation
   String simNameDecoupledHalf = "WSCC_9bus_split_decoupledHalfComp_EMT_" +
@@ -125,5 +126,6 @@ int main(int argc, char *argv[]) {
   decoupleLine(systemDecoupled, "LINE64", "BUS6", "BUS4");
   decoupleLine(systemDecoupled, "LINE89", "BUS8", "BUS9");
 
-  doSim(simNameDecoupledHalf, systemDecoupled, numThreads);
+  doSim(simNameDecoupledHalf, systemDecoupled, numThreads, args.timeStep,
+        args.duration);
 }
