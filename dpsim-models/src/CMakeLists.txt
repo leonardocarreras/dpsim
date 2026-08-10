@@ -91,6 +91,7 @@ list(APPEND MODELS_SOURCES
 	DP/DP_Ph3_GenericTwoTerminalITypeSSN.cpp
 	DP/DP_Ph1_DecouplingIdealTransformer.cpp
 	DP/DP_Ph1_DecouplingLine.cpp
+	DP/DP_Ph1_HalfDecouplingLine.cpp
 
 	EMT/EMT_SSNComp.cpp
 	EMT/EMT_VTypeSSNComp.cpp

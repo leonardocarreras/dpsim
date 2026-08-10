@@ -50,6 +50,7 @@
 #include <dpsim-models/DP/DP_Ph1_CurrentSource.h>
 #include <dpsim-models/DP/DP_Ph1_DecouplingIdealTransformer.h>
 #include <dpsim-models/DP/DP_Ph1_DecouplingLine.h>
+#include <dpsim-models/DP/DP_Ph1_HalfDecouplingLine.h>
 #include <dpsim-models/DP/DP_Ph1_Inductor.h>
 #include <dpsim-models/DP/DP_Ph1_Inverter.h>
 #include <dpsim-models/DP/DP_Ph1_NetworkInjection.h>
