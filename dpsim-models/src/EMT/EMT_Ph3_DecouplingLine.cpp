@@ -50,28 +50,27 @@ void EMT::Ph3::DecouplingLine::createSubComponents() {
   mRes1 = EMT::Ph3::Resistor::make(**mName + "_r1", mLogLevel);
   mRes1->setParameters(Math::singlePhaseParameterToThreePhase(
       mSurgeImpedance(0, 0) + mResistance(0, 0) / 4));
-  mRes1->connect({EMT::SimNode::GND, mTerminals[0]->node()});
+  mRes1->connect({mTerminals[0]->node(), EMT::SimNode::GND});
   addMNASubComponent(mRes1, MNA_SUBCOMP_TASK_ORDER::NO_TASK,
                      MNA_SUBCOMP_TASK_ORDER::TASK_BEFORE_PARENT, false);
 
   mRes2 = EMT::Ph3::Resistor::make(**mName + "_r2", mLogLevel);
   mRes2->setParameters(Math::singlePhaseParameterToThreePhase(
       mSurgeImpedance(0, 0) + mResistance(0, 0) / 4));
-  /*Notice that, as opposed to the DecouplingLine Ph1, this resistor is connected from GND to node2,
-   since currently the Ph3 resistor has the opposite sign convention for voltage and current, compared to the Ph1 countepart.*/
-  mRes2->connect({EMT::SimNode::GND, mTerminals[1]->node()});
+  mRes2->connect({mTerminals[1]->node(), EMT::SimNode::GND});
   addMNASubComponent(mRes2, MNA_SUBCOMP_TASK_ORDER::NO_TASK,
                      MNA_SUBCOMP_TASK_ORDER::TASK_BEFORE_PARENT, false);
 
   mSrc1 = ControlledCurrentSource::make(**mName + "_i1", mLogLevel);
   mSrc1->setParameters(Matrix::Zero(3, 1));
-  mSrc1->connect({mTerminals[0]->node(), EMT::SimNode::GND});
+  // EMT::Ph3::ControlledCurrentSource injects against EMT::Ph1 and DP::Ph1
+  mSrc1->connect({EMT::SimNode::GND, mTerminals[0]->node()});
   addMNASubComponent(mSrc1, MNA_SUBCOMP_TASK_ORDER::NO_TASK,
                      MNA_SUBCOMP_TASK_ORDER::TASK_BEFORE_PARENT, true);
 
   mSrc2 = ControlledCurrentSource::make(**mName + "_i2", mLogLevel);
   mSrc2->setParameters(Matrix::Zero(3, 1));
-  mSrc2->connect({mTerminals[1]->node(), EMT::SimNode::GND});
+  mSrc2->connect({EMT::SimNode::GND, mTerminals[1]->node()});
   addMNASubComponent(mSrc2, MNA_SUBCOMP_TASK_ORDER::NO_TASK,
                      MNA_SUBCOMP_TASK_ORDER::TASK_BEFORE_PARENT, true);
 
@@ -94,8 +93,8 @@ void EMT::Ph3::DecouplingLine::mnaParentInitialize(
   SPDLOG_LOGGER_INFO(mSLog, "bufsize {} alpha {}", mBufSize, mAlpha);
 
   // Initialization based on static PI-line model
-  MatrixComp volt1 = -initialVoltage(0);
-  MatrixComp volt2 = -initialVoltage(1);
+  MatrixComp volt1 = initialVoltage(0);
+  MatrixComp volt2 = initialVoltage(1);
 
   MatrixComp initAdmittance =
       (mResistance + Complex(0, omega) * mInductance).inverse() +

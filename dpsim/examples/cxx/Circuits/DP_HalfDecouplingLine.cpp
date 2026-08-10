@@ -634,12 +634,12 @@ static void runConventionCase(const String &tag, const EmtPh1Rig &ph1,
               relativeRmse(ph3.voltage, ph1.voltage, ph1.sampleTimes,
                            SETTLE_TIME, MODULATION_START),
               CONVENTION_BOUND);
-  reportBelow(tag + " EMT Ph3 history source against the negated Ph1",
-              relativeRmse(ph3.historyCurrent, negated(ph1.historyCurrent),
+  reportBelow(tag + " EMT Ph3 history source against Ph1, one convention",
+              relativeRmse(ph3.historyCurrent, ph1.historyCurrent,
                            ph1.sampleTimes, SETTLE_TIME, MODULATION_START),
               CONVENTION_BOUND);
-  reportAbove(tag + " EMT Ph3 history source against the unnegated Ph1",
-              relativeRmse(ph3.historyCurrent, ph1.historyCurrent,
+  reportAbove(tag + " EMT Ph3 history source against the negated Ph1",
+              relativeRmse(ph3.historyCurrent, negated(ph1.historyCurrent),
                            ph1.sampleTimes, SETTLE_TIME, MODULATION_START),
               CONVENTION_SEPARATION);
 }

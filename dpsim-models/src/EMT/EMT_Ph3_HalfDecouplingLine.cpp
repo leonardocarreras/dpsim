@@ -10,7 +10,8 @@ EMT::Ph3::HalfDecouplingLine::HalfDecouplingLine(String uid, String name,
                                                  Logger::Level logLevel)
     : Base::HalfDecouplingLine<Real>(uid, name, 3, logLevel) {
   mPhaseType = PhaseType::ABC;
-  mHistorySign = -1.;
+  // EMT::Ph3::ControlledCurrentSource injects against EMT::Ph1 and DP::Ph1
+  mSourceReversed = true;
 }
 
 void EMT::Ph3::HalfDecouplingLine::createSubComponents() {
@@ -20,17 +21,17 @@ void EMT::Ph3::HalfDecouplingLine::createSubComponents() {
 
   mSubRes = EMT::Ph3::Resistor::make(**mName + "_r", mLogLevel);
   mSubRes->setParameters(**mSrcRes);
-  /* As in EMT::Ph3::DecouplingLine, the terminating resistor is connected from
-     GND to the terminal, since the Ph3 resistor has the opposite sign
-     convention for voltage and current compared to its Ph1 counterpart. */
-  mSubRes->connect({SimNode::GND, mTerminals[0]->node()});
+  mSubRes->connect({mTerminals[0]->node(), SimNode::GND});
   addMNASubComponent(mSubRes, MNA_SUBCOMP_TASK_ORDER::NO_TASK,
                      MNA_SUBCOMP_TASK_ORDER::TASK_BEFORE_PARENT, false);
 
   mSubCtrledCurrentSource =
       EMT::Ph3::ControlledCurrentSource::make(**mName + "_i", mLogLevel);
   mSubCtrledCurrentSource->setParameters(**mSrcCtrledCurrent);
-  mSubCtrledCurrentSource->connect({mTerminals[0]->node(), SimNode::GND});
+  if (mSourceReversed)
+    mSubCtrledCurrentSource->connect({SimNode::GND, mTerminals[0]->node()});
+  else
+    mSubCtrledCurrentSource->connect({mTerminals[0]->node(), SimNode::GND});
   addMNASubComponent(mSubCtrledCurrentSource, MNA_SUBCOMP_TASK_ORDER::NO_TASK,
                      MNA_SUBCOMP_TASK_ORDER::TASK_BEFORE_PARENT, true);
 }
@@ -53,11 +54,11 @@ void EMT::Ph3::HalfDecouplingLine::applySourceCurrent() {
 }
 
 Matrix EMT::Ph3::HalfDecouplingLine::historyVoltage() {
-  return mHistorySign * mSubRes->intfVoltage();
+  return -mSubRes->intfVoltage();
 }
 
 Matrix EMT::Ph3::HalfDecouplingLine::historyCurrent() {
-  return mHistorySign * mSubRes->intfCurrent() + **mSrcCtrledCurrent;
+  return -mSubRes->intfCurrent() + **mSrcCtrledCurrent;
 }
 
 void EMT::Ph3::HalfDecouplingLine::mnaParentPreStep(Real time,

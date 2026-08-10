@@ -173,11 +173,8 @@ void Base::HalfDecouplingLine<VarType>::initializeSteadyState(Real omega,
           ? injectionSteadyStateCurrent(voltNode)
           : distributedSteadyStateCurrent(voltNode, **mReceivingInitVolt);
 
-  MatrixComp voltNear = mHistorySign * voltNode;
-  MatrixComp curNear = mHistorySign * curNode;
-
   SPDLOG_LOGGER_INFO(this->mSLog, "steady state seed: v_k {} i_k {} from {}",
-                     voltNear, curNear,
+                     voltNode, curNode,
                      mInjectionSet ? "terminal injection" : "line ends");
 
   UInt length = mBufSize + mBufShift;
@@ -185,8 +182,8 @@ void Base::HalfDecouplingLine<VarType>::initializeSteadyState(Real omega,
   mCurBuf.resize(length);
   for (UInt idx = 0; idx < length; idx++) {
     Real lag = (length - idx) * mTimeStep;
-    mVoltBuf[idx] = sampleAtLag(voltNear, omega, lag);
-    mCurBuf[idx] = sampleAtLag(curNear, omega, lag);
+    mVoltBuf[idx] = sampleAtLag(voltNode, omega, lag);
+    mCurBuf[idx] = sampleAtLag(curNode, omega, lag);
   }
   mBufIdx = 0;
   mStepsSincePublish = 0;

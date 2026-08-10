@@ -15,7 +15,6 @@ protected:
   Real mDelay = 0;
   Real mSystemOmega = 0;
   UInt mNumPhases;
-  Real mHistorySign = 1.;
 
   Matrix mResistance;
   Matrix mInductance;
@@ -46,6 +45,7 @@ protected:
 
   MatrixComp mInitialInjection;
   Bool mInjectionSet = false;
+  Bool mSourceReversed = false;
 
   UInt blockLength(Real timeStep) const;
   MatrixVar<VarType>
@@ -90,6 +90,12 @@ public:
   void setInitialCouplingSource(Attribute<MatrixComp>::Ptr receivingInitVolt);
   /// Communication period, at most the travel time, and the far end time step
   void setCommunicationStep(Real communicationStep, Real farTimeStep);
+  /// Reverses the internal history source connection. Every half buffers the
+  /// terminal voltage with the same sign, so the source is connected the same
+  /// way in every domain; the one exception is a domain whose current source
+  /// family carries the opposite convention, which is Ph3 today. Set this when
+  /// a domain's current source family changes, instead of editing the wiring.
+  void setSourceReversed(Bool reversed) { mSourceReversed = reversed; }
   /// Terminal injection from the power flow, in the sign convention of the
   /// terminal. When it is set the seed needs no far-end quantity at all.
   void setInitialInjection(const MatrixComp &power);

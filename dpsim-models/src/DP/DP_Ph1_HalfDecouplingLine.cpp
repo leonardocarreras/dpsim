@@ -32,8 +32,12 @@ void DP::Ph1::HalfDecouplingLine::createSubComponents() {
   mSubCtrledCurrentSource =
       DP::Ph1::CurrentSource::make(**mName + "_i", mLogLevel);
   mSubCtrledCurrentSource->setParameters((**mSrcCtrledCurrent)(0, 0));
-  mSubCtrledCurrentSource->connect(
-      {mTerminals[0]->node(), CPS::SimNode<Complex>::GND});
+  if (mSourceReversed)
+    mSubCtrledCurrentSource->connect(
+        {CPS::SimNode<Complex>::GND, mTerminals[0]->node()});
+  else
+    mSubCtrledCurrentSource->connect(
+        {mTerminals[0]->node(), CPS::SimNode<Complex>::GND});
   addMNASubComponent(mSubCtrledCurrentSource, MNA_SUBCOMP_TASK_ORDER::NO_TASK,
                      MNA_SUBCOMP_TASK_ORDER::TASK_BEFORE_PARENT, true);
 }
