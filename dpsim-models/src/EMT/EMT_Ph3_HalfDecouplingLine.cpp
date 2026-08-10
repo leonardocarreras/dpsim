@@ -40,12 +40,6 @@ void EMT::Ph3::HalfDecouplingLine::initializeParentFromNodesAndTerminals(
 
   **mIntfVoltage = initialVoltage(0).real();
   **mIntfCurrent = Matrix::Zero(3, 1);
-
-  // The sending quantities follow the internal sign convention of
-  // EMT::Ph3::DecouplingLine, in which the recorded voltage is the negated
-  // terminal voltage.
-  **mSendingVolt = mHistorySign * (**mIntfVoltage);
-  **mSendingCur = Matrix::Zero(3, 1);
   publishInitialVoltage();
 }
 

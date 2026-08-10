@@ -90,6 +90,23 @@ void Base::HalfDecouplingLine<VarType>::publishInitialVoltage() {
 }
 
 template <typename VarType>
+void Base::HalfDecouplingLine<VarType>::setCommunicationStep(
+    Real communicationStep, Real farTimeStep) {
+  mCommunicationStep = communicationStep;
+  mFarTimeStep = farTimeStep;
+}
+
+template <typename VarType>
+UInt Base::HalfDecouplingLine<VarType>::blockLength(Real timeStep) const {
+  Real ratio = mCommunicationStep / timeStep;
+  UInt count = static_cast<UInt>(round(ratio));
+  if (count < 1 || fabs(ratio - count) > 1e-9 * ratio)
+    throw SystemError(
+        "Communication step is not an integer multiple of the time step");
+  return count;
+}
+
+template <typename VarType>
 void Base::HalfDecouplingLine<VarType>::sizeHistory(Real timeStep) {
   if (mDelay < timeStep)
     throw SystemError("Timestep too large for decoupling");
@@ -97,7 +114,23 @@ void Base::HalfDecouplingLine<VarType>::sizeHistory(Real timeStep) {
   mTimeStep = timeStep;
   mBufSize = static_cast<UInt>(ceil(mDelay / timeStep));
   mAlpha = 1 - (mBufSize - mDelay / timeStep);
-  SPDLOG_LOGGER_INFO(this->mSLog, "bufsize {} alpha {}", mBufSize, mAlpha);
+
+  if (mCommunicationStep == 0.)
+    mCommunicationStep = timeStep;
+  if (mFarTimeStep == 0.)
+    mFarTimeStep = timeStep;
+  if (mCommunicationStep > mDelay)
+    throw SystemError("Communication step longer than the travel time");
+
+  mReceiveBlockLen = blockLength(timeStep);
+  mSendBlockLen = blockLength(mFarTimeStep);
+
+  Real ratio = mFarTimeStep / mTimeStep;
+  mBufShift = ratio < 1. ? static_cast<UInt>(ceil(1. - ratio)) : 0;
+
+  SPDLOG_LOGGER_INFO(this->mSLog,
+                     "bufsize {} alpha {} send block {} receive block {}",
+                     mBufSize, mAlpha, mSendBlockLen, mReceiveBlockLen);
 }
 
 template <typename VarType>
@@ -147,26 +180,43 @@ void Base::HalfDecouplingLine<VarType>::initializeSteadyState(Real omega,
                      voltNear, curNear,
                      mInjectionSet ? "terminal injection" : "line ends");
 
-  mVoltBuf.resize(mBufSize);
-  mCurBuf.resize(mBufSize);
-  for (UInt idx = 0; idx < mBufSize; idx++) {
-    Real lag = (mBufSize - idx) * mTimeStep;
+  UInt length = mBufSize + mBufShift;
+  mVoltBuf.resize(length);
+  mCurBuf.resize(length);
+  for (UInt idx = 0; idx < length; idx++) {
+    Real lag = (length - idx) * mTimeStep;
     mVoltBuf[idx] = sampleAtLag(voltNear, omega, lag);
     mCurBuf[idx] = sampleAtLag(curNear, omega, lag);
   }
   mBufIdx = 0;
+  mStepsSincePublish = 0;
 
-  **mSendingVolt = interpolate(mVoltBuf);
-  **mSendingCur = interpolate(mCurBuf);
+  mNearVolt = sampleFromHistory(mVoltBuf, 0.);
+  mNearCur = sampleFromHistory(mCurBuf, 0.);
+  **mSendingVolt = historyBlock(mVoltBuf);
+  **mSendingCur = historyBlock(mCurBuf);
 }
 
 template <typename VarType>
-MatrixVar<VarType> Base::HalfDecouplingLine<VarType>::interpolate(
+MatrixVar<VarType> Base::HalfDecouplingLine<VarType>::sampleFromHistory(
+    const std::vector<MatrixVar<VarType>> &data, Real offset) const {
+  UInt length = static_cast<UInt>(data.size());
+  Real position = mBufShift + (1. - mAlpha) + offset;
+  UInt whole = static_cast<UInt>(floor(position));
+  Real weight = mAlpha - (offset - Real(whole) + Real(mBufShift));
+  const MatrixVar<VarType> &c1 = data[(mBufIdx + whole) % length];
+  const MatrixVar<VarType> &c2 = data[(mBufIdx + whole + 1) % length];
+  return weight * c1 + (1 - weight) * c2;
+}
+
+template <typename VarType>
+MatrixVar<VarType> Base::HalfDecouplingLine<VarType>::historyBlock(
     const std::vector<MatrixVar<VarType>> &data) const {
-  const MatrixVar<VarType> &c1 = data[mBufIdx];
-  const MatrixVar<VarType> &c2 =
-      mBufIdx == mBufSize - 1 ? data[0] : data[mBufIdx + 1];
-  return mAlpha * c1 + (1 - mAlpha) * c2;
+  MatrixVar<VarType> block(mNumPhases, mSendBlockLen);
+  Real ratio = mFarTimeStep / mTimeStep;
+  for (UInt col = 0; col < mSendBlockLen; col++)
+    block.col(col) = sampleFromHistory(data, (col + 1) * ratio - 1.);
+  return block;
 }
 
 template <>
@@ -196,10 +246,14 @@ Base::HalfDecouplingLine<Complex>::sampleAtLag(const MatrixComp &phasor,
 template <typename VarType>
 void Base::HalfDecouplingLine<VarType>::computeSourceCurrent(
     Int timeStepCount) {
-  const MatrixVar<VarType> &voltNear = **mSendingVolt;
-  const MatrixVar<VarType> &curNear = **mSendingCur;
-  const MatrixVar<VarType> &voltFar = **mReceivingVolt;
-  const MatrixVar<VarType> &curFar = **mReceivingCur;
+  if ((**mReceivingVolt).cols() != static_cast<Int>(mReceiveBlockLen))
+    throw SystemError("Received history block has the wrong length");
+
+  UInt column = static_cast<UInt>(timeStepCount) % mReceiveBlockLen;
+  const MatrixVar<VarType> &voltNear = mNearVolt;
+  const MatrixVar<VarType> &curNear = mNearCur;
+  const auto voltFar = (**mReceivingVolt).col(column);
+  const auto curFar = (**mReceivingCur).col(column);
 
   **mSrcCtrledCurrent =
       -mSurgeImpedanceVar * mDenomInv *
@@ -217,11 +271,18 @@ void Base::HalfDecouplingLine<VarType>::recordHistory() {
   mCurBuf[mBufIdx] = historyCurrent();
 
   mBufIdx++;
-  if (mBufIdx == mBufSize)
+  if (mBufIdx == mVoltBuf.size())
     mBufIdx = 0;
 
-  **mSendingVolt = interpolate(mVoltBuf);
-  **mSendingCur = interpolate(mCurBuf);
+  mNearVolt = sampleFromHistory(mVoltBuf, 0.);
+  mNearCur = sampleFromHistory(mCurBuf, 0.);
+
+  mStepsSincePublish++;
+  if (mStepsSincePublish == mReceiveBlockLen) {
+    **mSendingVolt = historyBlock(mVoltBuf);
+    **mSendingCur = historyBlock(mCurBuf);
+    mStepsSincePublish = 0;
+  }
 }
 
 template class CPS::Base::HalfDecouplingLine<Real>;

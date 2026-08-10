@@ -31,14 +31,28 @@ protected:
   std::vector<MatrixVar<VarType>> mCurBuf;
   UInt mBufIdx = 0;
   UInt mBufSize = 0;
+  UInt mBufShift = 0;
   Real mAlpha = 1.;
   Real mTimeStep = 0;
+
+  MatrixVar<VarType> mNearVolt;
+  MatrixVar<VarType> mNearCur;
+
+  Real mCommunicationStep = 0;
+  Real mFarTimeStep = 0;
+  UInt mSendBlockLen = 1;
+  UInt mReceiveBlockLen = 1;
+  UInt mStepsSincePublish = 0;
 
   MatrixComp mInitialInjection;
   Bool mInjectionSet = false;
 
+  UInt blockLength(Real timeStep) const;
   MatrixVar<VarType>
-  interpolate(const std::vector<MatrixVar<VarType>> &data) const;
+  sampleFromHistory(const std::vector<MatrixVar<VarType>> &data,
+                    Real offset) const;
+  MatrixVar<VarType>
+  historyBlock(const std::vector<MatrixVar<VarType>> &data) const;
   void sizeHistory(Real timeStep);
   void computeSourceCurrent(Int timeStepCount);
   void recordHistory();
@@ -74,6 +88,8 @@ public:
   setCouplingSource(typename Attribute<MatrixVar<VarType>>::Ptr receivingVolt,
                     typename Attribute<MatrixVar<VarType>>::Ptr receivingCur);
   void setInitialCouplingSource(Attribute<MatrixComp>::Ptr receivingInitVolt);
+  /// Communication period, at most the travel time, and the far end time step
+  void setCommunicationStep(Real communicationStep, Real farTimeStep);
   /// Terminal injection from the power flow, in the sign convention of the
   /// terminal. When it is set the seed needs no far-end quantity at all.
   void setInitialInjection(const MatrixComp &power);
@@ -85,6 +101,8 @@ public:
 
   Real delay() const { return mDelay; }
   UInt bufferSize() const { return mBufSize; }
+  UInt sendBlockLength() const { return mSendBlockLen; }
+  UInt receiveBlockLength() const { return mReceiveBlockLen; }
 };
 } // namespace Base
 } // namespace CPS

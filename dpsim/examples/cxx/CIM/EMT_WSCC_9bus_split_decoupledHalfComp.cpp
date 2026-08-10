@@ -12,7 +12,8 @@ using namespace DPsim;
 using namespace CPS;
 
 void decoupleLine(SystemTopology &sys, const String &lineName,
-                  const String &node1, const String &node2) {
+                  const String &node1, const String &node2, Real timeStep,
+                  Real communicationStep) {
   auto origLine = sys.component<EMT::Ph3::PiLine>(lineName);
   Matrix Rline = origLine->attributeTyped<Matrix>("R_series")->get();
   Matrix Lline = origLine->attributeTyped<Matrix>("L_series")->get();
@@ -32,11 +33,13 @@ void decoupleLine(SystemTopology &sys, const String &lineName,
   halfLineA->setParameters(Rline, Lline, Cline);
   halfLineA->setCouplingSource(halfLineB->mSendingVolt, halfLineB->mSendingCur);
   halfLineA->setInitialCouplingSource(halfLineB->mSendingInitVolt);
+  halfLineA->setCommunicationStep(communicationStep, timeStep);
 
   halfLineB->connect({sys.node<CPS::SimNode<Real>>(node2)});
   halfLineB->setParameters(Rline, Lline, Cline);
   halfLineB->setCouplingSource(halfLineA->mSendingVolt, halfLineA->mSendingCur);
   halfLineB->setInitialCouplingSource(halfLineA->mSendingInitVolt);
+  halfLineB->setCommunicationStep(communicationStep, timeStep);
 
   // The frozen-time boundary exchange, run by the driver before any solver
   // initializes. Each half publishes, then every half seeds from a complete
@@ -89,11 +92,14 @@ int main(int argc, char *argv[]) {
 
   Int numThreads = 0;
   Int numSeq = 0;
+  Int commSteps = 1;
 
   if (args.options.find("threads") != args.options.end())
     numThreads = args.getOptionInt("threads");
   if (args.options.find("seq") != args.options.end())
     numSeq = args.getOptionInt("seq");
+  if (args.options.find("commsteps") != args.options.end())
+    commSteps = args.getOptionInt("commsteps");
 
   std::cout << "Simulate with " << numThreads << " threads, sequence number "
             << numSeq << std::endl;
@@ -121,10 +127,14 @@ int main(int argc, char *argv[]) {
       readerDecoupled.loadCIM(60, filenames, Domain::EMT, PhaseType::ABC,
                               CPS::GeneratorType::IdealVoltageSource);
 
-  decoupleLine(systemDecoupled, "LINE75", "BUS7", "BUS5");
+  Real communicationStep = commSteps * args.timeStep;
+  decoupleLine(systemDecoupled, "LINE75", "BUS7", "BUS5", args.timeStep,
+               communicationStep);
   // decouple_line(system, "LINE78", "BUS7", "BUS8");
-  decoupleLine(systemDecoupled, "LINE64", "BUS6", "BUS4");
-  decoupleLine(systemDecoupled, "LINE89", "BUS8", "BUS9");
+  decoupleLine(systemDecoupled, "LINE64", "BUS6", "BUS4", args.timeStep,
+               communicationStep);
+  decoupleLine(systemDecoupled, "LINE89", "BUS8", "BUS9", args.timeStep,
+               communicationStep);
 
   doSim(simNameDecoupledHalf, systemDecoupled, numThreads, args.timeStep,
         args.duration);
