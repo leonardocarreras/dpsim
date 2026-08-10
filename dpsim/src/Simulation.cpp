@@ -235,6 +235,12 @@ void Simulation::sync() const {
   SPDLOG_LOGGER_INFO(mLog, "Synchronized simulation start with remotes");
 }
 
+void Simulation::keepAlive(const CPS::AttributeBase::List &attributes) {
+  mKeepAliveTasks.push_back(std::make_shared<KeepAlive>(
+      **mName + ".KeepAlive" + std::to_string(mKeepAliveTasks.size()),
+      attributes));
+}
+
 void Simulation::prepSchedule() {
   mTasks.clear();
   mTaskOutEdges.clear();
@@ -253,6 +259,10 @@ void Simulation::prepSchedule() {
 
   for (auto logger : mLoggers) {
     mTasks.push_back(logger->getTask());
+  }
+
+  for (auto task : mKeepAliveTasks) {
+    mTasks.push_back(task);
   }
   if (!mScheduler) {
     mScheduler = std::make_shared<SequentialScheduler>();

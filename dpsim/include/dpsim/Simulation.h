@@ -161,6 +161,26 @@ protected:
   /// The data loggers
   DataLoggerInterface::List mLoggers;
 
+  /// No-op task that consumes attributes so the tasks writing them are kept in
+  /// the schedule. The scheduler drops any task whose modified attributes
+  /// nobody consumes, which otherwise leaves an in-process reader looking at
+  /// the value written during initialization.
+  class KeepAlive : public CPS::Task {
+  public:
+    KeepAlive(const CPS::String &name,
+              const CPS::AttributeBase::List &attributes)
+        : Task(name) {
+      for (auto attribute : attributes)
+        mAttributeDependencies.push_back(attribute);
+      mModifiedAttributes.push_back(Scheduler::external);
+    }
+
+    void execute(Real time, Int timeStepCount) override {}
+  };
+
+  /// Tasks registered through keepAlive()
+  CPS::Task::List mKeepAliveTasks;
+
   /// Helper function for constructors
   void create();
   /// Create solvers depending on simulation settings
@@ -315,6 +335,14 @@ public:
   /// Add a new data logger
   void addLogger(DataLoggerInterface::Ptr logger) {
     mLoggers.push_back(logger);
+  }
+  /// Keeps the tasks that write these attributes in the schedule, so that a
+  /// reader outside the simulation loop sees them updated. Needed because the
+  /// scheduler prunes any task nothing depends on; a disabled DataLogger is the
+  /// alternative and costs a file name and a virtual call.
+  void keepAlive(const CPS::AttributeBase::List &attributes);
+  void keepAlive(CPS::AttributeBase::Ptr attribute) {
+    keepAlive(CPS::AttributeBase::List{attribute});
   }
   /// Write step time measurements to log file
   void logStepTimes(String logName);
