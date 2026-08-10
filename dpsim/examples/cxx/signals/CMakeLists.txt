@@ -1,6 +1,7 @@
 set(SIGNALS_SRCS
 	FIRFilter.cpp
 	TurbineGovernor.cpp
+	SFAConversionOperatorsCheck.cpp
 )
 
 foreach(SOURCE ${SIGNALS_SRCS})
