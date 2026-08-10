@@ -87,8 +87,8 @@ void EMT::Ph1::DecouplingLine::mnaParentInitialize(
   SPDLOG_LOGGER_INFO(mSLog, "bufsize {} alpha {}", mBufSize, mAlpha);
 
   // Initialization based on static PI-line model
-  Complex volt1 = initialSingleVoltage(0);
-  Complex volt2 = initialSingleVoltage(1);
+  Complex volt1 = RMS3PH_TO_PEAK1PH * initialSingleVoltage(0);
+  Complex volt2 = RMS3PH_TO_PEAK1PH * initialSingleVoltage(1);
   Complex initAdmittance = 1. / Complex(mResistance, omega * mInductance) +
                            Complex(0, omega * mCapacitance / 2);
   Complex cur1 = volt1 * initAdmittance -

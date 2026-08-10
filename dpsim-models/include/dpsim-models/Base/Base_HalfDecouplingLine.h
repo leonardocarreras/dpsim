@@ -46,6 +46,9 @@ protected:
   MatrixComp mInitialInjection;
   Bool mInjectionSet = false;
   Bool mSourceReversed = false;
+  /// Node phasors are RMS line to line in every domain; EMT works in peak
+  /// phase instantaneous quantities and so scales them, DP and SP do not.
+  Real mNodeVoltageScale = 1.;
 
   UInt blockLength(Real timeStep) const;
   MatrixVar<VarType>

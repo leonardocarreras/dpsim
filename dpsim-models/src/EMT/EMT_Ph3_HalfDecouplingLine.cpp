@@ -12,6 +12,7 @@ EMT::Ph3::HalfDecouplingLine::HalfDecouplingLine(String uid, String name,
   mPhaseType = PhaseType::ABC;
   // EMT::Ph3::ControlledCurrentSource injects against EMT::Ph1 and DP::Ph1
   mSourceReversed = true;
+  mNodeVoltageScale = RMS3PH_TO_PEAK1PH;
 }
 
 void EMT::Ph3::HalfDecouplingLine::createSubComponents() {
@@ -39,7 +40,7 @@ void EMT::Ph3::HalfDecouplingLine::createSubComponents() {
 void EMT::Ph3::HalfDecouplingLine::initializeParentFromNodesAndTerminals(
     Real frequency) {
 
-  **mIntfVoltage = initialVoltage(0).real();
+  **mIntfVoltage = (RMS3PH_TO_PEAK1PH * initialVoltage(0)).real();
   **mIntfCurrent = Matrix::Zero(3, 1);
   publishInitialVoltage();
 }

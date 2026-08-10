@@ -29,6 +29,7 @@ static const Real HALVES_BOUND = 1.e-12;
 static const Real SEED_BOUND = 1.e-2;
 static const Real LUMPED_BOUND_VOLTAGE = 2.e-6;
 static const Real LUMPED_BOUND_CURRENT = 1.e-5;
+static const Real EMT_SEED_BOUND = 1.e-4;
 static const Real EMT_BOUND_VOLTAGE = 5.e-6;
 static const Real EMT_BOUND_CURRENT = 5.e-5;
 static const Real CONVENTION_BOUND = 1.e-12;
@@ -465,6 +466,14 @@ static EmtPh1Rig runEmtPh1Case(const String &tag, Real frequency) {
 
   std::vector<Real> times = runEmtPh1({&decoupled, &lumped});
 
+  report(
+      tag + " EMT Ph1 startup decoupled against lumped elements",
+      relativeRmse(decoupled.voltage, lumped.voltage, times, 0., SETTLE_TIME),
+      EMT_SEED_BOUND);
+  report(
+      tag + " EMT Ph1 startup decoupled current against lumped elements",
+      relativeRmse(decoupled.current, lumped.current, times, 0., SETTLE_TIME),
+      EMT_SEED_BOUND);
   report(tag + " EMT Ph1 steady decoupled against lumped elements",
          relativeRmse(decoupled.voltage, lumped.voltage, times, SETTLE_TIME,
                       MODULATION_START),
@@ -600,6 +609,14 @@ static EmtPh3Rig runEmtPh3Case(const String &tag, Real frequency) {
 
   std::vector<Real> times = runEmtPh3({&decoupled, &lumped});
 
+  report(
+      tag + " EMT Ph3 startup decoupled against lumped elements",
+      relativeRmse(decoupled.voltage, lumped.voltage, times, 0., SETTLE_TIME),
+      EMT_SEED_BOUND);
+  report(
+      tag + " EMT Ph3 startup decoupled current against lumped elements",
+      relativeRmse(decoupled.current, lumped.current, times, 0., SETTLE_TIME),
+      EMT_SEED_BOUND);
   report(tag + " EMT Ph3 steady decoupled against lumped elements",
          relativeRmse(decoupled.voltage, lumped.voltage, times, SETTLE_TIME,
                       MODULATION_START),

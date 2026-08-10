@@ -167,11 +167,11 @@ void Base::HalfDecouplingLine<VarType>::initializeSteadyState(Real omega,
   mSystemOmega = omega;
   sizeHistory(timeStep);
 
-  MatrixComp voltNode = this->initialVoltage(0);
+  MatrixComp voltNode = mNodeVoltageScale * this->initialVoltage(0);
   MatrixComp curNode =
-      mInjectionSet
-          ? injectionSteadyStateCurrent(voltNode)
-          : distributedSteadyStateCurrent(voltNode, **mReceivingInitVolt);
+      mInjectionSet ? injectionSteadyStateCurrent(voltNode)
+                    : distributedSteadyStateCurrent(
+                          voltNode, mNodeVoltageScale * (**mReceivingInitVolt));
 
   SPDLOG_LOGGER_INFO(this->mSLog, "steady state seed: v_k {} i_k {} from {}",
                      voltNode, curNode,

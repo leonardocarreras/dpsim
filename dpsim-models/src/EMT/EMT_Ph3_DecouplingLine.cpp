@@ -93,8 +93,8 @@ void EMT::Ph3::DecouplingLine::mnaParentInitialize(
   SPDLOG_LOGGER_INFO(mSLog, "bufsize {} alpha {}", mBufSize, mAlpha);
 
   // Initialization based on static PI-line model
-  MatrixComp volt1 = initialVoltage(0);
-  MatrixComp volt2 = initialVoltage(1);
+  MatrixComp volt1 = RMS3PH_TO_PEAK1PH * initialVoltage(0);
+  MatrixComp volt2 = RMS3PH_TO_PEAK1PH * initialVoltage(1);
 
   MatrixComp initAdmittance =
       (mResistance + Complex(0, omega) * mInductance).inverse() +
