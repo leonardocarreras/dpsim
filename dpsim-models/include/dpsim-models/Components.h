@@ -204,6 +204,7 @@
 #include <dpsim-models/Signal/HydroTurbineGovernor.h>
 #include <dpsim-models/Signal/Integrator.h>
 #include <dpsim-models/Signal/PSS1A.h>
+#include <dpsim-models/Signal/SFAConversionOperators.h>
 #include <dpsim-models/Signal/SignalGenerator.h>
 #include <dpsim-models/Signal/SineWaveGenerator.h>
 #include <dpsim-models/Signal/SteamTurbine.h>
