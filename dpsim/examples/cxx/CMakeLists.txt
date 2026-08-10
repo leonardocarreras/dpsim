@@ -59,6 +59,7 @@ set(CIRCUIT_SOURCES
 	Circuits/SP_Circuits.cpp
 	Circuits/SP_PiLine.cpp
 	Circuits/SP_DecouplingLine.cpp
+	Circuits/DP_HalfDecouplingLine.cpp
 	Circuits/SP_ITM_withPiLine_Ph1.cpp
 	Circuits/SP_Slack_PiLine_VSI_with_PF_Init.cpp
 	Circuits/SP_Slack_PiLine_VSI_Ramp_with_PF_Init.cpp
