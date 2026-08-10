@@ -128,6 +128,7 @@
 #include <dpsim-models/EMT/EMT_Ph1_DecouplingLine.h>
 #include <dpsim-models/EMT/EMT_Ph3_DecouplingIdealTransformer.h>
 #include <dpsim-models/EMT/EMT_Ph3_DecouplingLine.h>
+#include <dpsim-models/EMT/EMT_Ph3_HalfDecouplingLine.h>
 #include <dpsim-models/EMT/EMT_SSNComp.h>
 #include <dpsim-models/EMT/EMT_VTypeSSNComp.h>
 #include <dpsim-models/EMT/EMT_VTypeVariableSSNComp.h>

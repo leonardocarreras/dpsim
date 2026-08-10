@@ -169,6 +169,7 @@ list(APPEND MODELS_SOURCES
 	EMT/EMT_Ph3_DecouplingIdealTransformer.cpp
 	EMT/EMT_Ph3_DecouplingLine.cpp
 	EMT/EMT_Ph1_DecouplingLine.cpp
+	EMT/EMT_Ph3_HalfDecouplingLine.cpp
 
 	SP/SP_Ph1_ControlledCurrentSource.cpp
 	SP/SP_Ph1_VoltageSource.cpp
