@@ -29,6 +29,7 @@ static const Real STEADY_BOUND_VOLTAGE = 2.e-6;
 static const Real STEADY_BOUND_CURRENT = 1.e-5;
 static const Real MODULATED_BOUND_VOLTAGE = 5.e-4;
 static const Real MODULATED_BOUND_CURRENT = 2.e-3;
+static const Real STALE_ATTRIBUTE_FLOOR = 1.e-12;
 
 static Int gFailures = 0;
 
@@ -188,10 +189,11 @@ static Real relativeRmse(const std::vector<Complex> &test,
 }
 
 static void report(const String &name, Real value, Real limit) {
-  bool passed = value < limit;
+  bool passed = value > STALE_ATTRIBUTE_FLOOR && value < limit;
   std::cout << (passed ? "  PASS  " : "  FAIL  ") << std::left << std::setw(56)
             << name << std::right << std::scientific << std::setprecision(3)
-            << value << " < " << limit << std::endl;
+            << STALE_ATTRIBUTE_FLOOR << " < " << value << " < " << limit
+            << std::endl;
   if (!passed)
     ++gFailures;
 }
