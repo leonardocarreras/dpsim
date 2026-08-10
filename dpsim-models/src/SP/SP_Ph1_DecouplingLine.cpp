@@ -1,0 +1,189 @@
+// SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+// SPDX-License-Identifier: MPL-2.0
+
+#include "dpsim-models/Definitions.h"
+#include <dpsim-models/SP/SP_Ph1_DecouplingLine.h>
+
+using namespace CPS;
+using namespace CPS::SP::Ph1;
+
+SP::Ph1::DecouplingLine::DecouplingLine(String uid, String name,
+                                        Logger::Level logLevel)
+    : CompositePowerComp<Complex>(uid, name, true, true, logLevel),
+      mStates(mAttributes->create<Matrix>("states")),
+      mSrcCur1Ref(mAttributes->create<Complex>("i_src1")),
+      mSrcCur2Ref(mAttributes->create<Complex>("i_src2")) {
+
+  setTerminalNumber(2);
+  **mIntfVoltage = MatrixComp::Zero(1, 1);
+  **mIntfCurrent = MatrixComp::Zero(1, 1);
+}
+
+void SP::Ph1::DecouplingLine::setParameters(Real resistance, Real inductance,
+                                            Real capacitance) {
+
+  mResistance = resistance;
+  mInductance = inductance;
+  mCapacitance = capacitance;
+
+  mSurgeImpedance = sqrt(inductance / capacitance);
+  mDelay = sqrt(inductance * capacitance);
+  SPDLOG_LOGGER_INFO(mSLog, "surge impedance: {}", mSurgeImpedance);
+  SPDLOG_LOGGER_INFO(mSLog, "delay: {}", mDelay);
+
+  mParametersSet = true;
+}
+
+void SP::Ph1::DecouplingLine::createSubComponents() {
+  if (mSubCompCreated)
+    return;
+  mSubCompCreated = true;
+
+  mRes1 = Resistor::make(**mName + "_r1", mLogLevel);
+  mRes1->setParameters(mSurgeImpedance + mResistance / 4);
+  mRes1->connect({mTerminals[0]->node(), CPS::SimNode<Complex>::GND});
+  addMNASubComponent(mRes1, MNA_SUBCOMP_TASK_ORDER::NO_TASK,
+                     MNA_SUBCOMP_TASK_ORDER::TASK_BEFORE_PARENT, false);
+
+  mRes2 = Resistor::make(**mName + "_r2", mLogLevel);
+  mRes2->setParameters(mSurgeImpedance + mResistance / 4);
+  mRes2->connect({mTerminals[1]->node(), CPS::SimNode<Complex>::GND});
+  addMNASubComponent(mRes2, MNA_SUBCOMP_TASK_ORDER::NO_TASK,
+                     MNA_SUBCOMP_TASK_ORDER::TASK_BEFORE_PARENT, false);
+
+  mSrc1 = ControlledCurrentSource::make(**mName + "_i1", mLogLevel);
+  mSrc1->setParameters(Complex(0, 0));
+  mSrc1->connect({mTerminals[0]->node(), CPS::SimNode<Complex>::GND});
+  addMNASubComponent(mSrc1, MNA_SUBCOMP_TASK_ORDER::NO_TASK,
+                     MNA_SUBCOMP_TASK_ORDER::TASK_BEFORE_PARENT, true);
+
+  mSrc2 = ControlledCurrentSource::make(**mName + "_i2", mLogLevel);
+  mSrc2->setParameters(Complex(0, 0));
+  mSrc2->connect({mTerminals[1]->node(), CPS::SimNode<Complex>::GND});
+  addMNASubComponent(mSrc2, MNA_SUBCOMP_TASK_ORDER::NO_TASK,
+                     MNA_SUBCOMP_TASK_ORDER::TASK_BEFORE_PARENT, true);
+
+  mSrcCur1 = mSrc1->mCurrentRef;
+  mSrcCur2 = mSrc2->mCurrentRef;
+}
+
+void SP::Ph1::DecouplingLine::initializeParentFromNodesAndTerminals(
+    Real frequency) {
+  (**mIntfVoltage)(0, 0) = initialSingleVoltage(1) - initialSingleVoltage(0);
+}
+
+void SP::Ph1::DecouplingLine::mnaParentInitialize(
+    Real omega, Real timeStep, Attribute<Matrix>::Ptr leftVector) {
+  if (mDelay < timeStep)
+    throw SystemError("Timestep too large for decoupling");
+
+  mSystemOmega = omega;
+  mBufSize = static_cast<UInt>(ceil(mDelay / timeStep));
+  mAlpha = 1 - (mBufSize - mDelay / timeStep);
+  SPDLOG_LOGGER_INFO(mSLog, "bufsize {} alpha {}", mBufSize, mAlpha);
+
+  Complex volt1 = initialSingleVoltage(0);
+  Complex volt2 = initialSingleVoltage(1);
+  Complex initAdmittance = 1. / Complex(mResistance, omega * mInductance) +
+                           Complex(0, omega * mCapacitance / 2);
+  Complex cur1 = volt1 * initAdmittance -
+                 volt2 / Complex(mResistance, omega * mInductance);
+  Complex cur2 = volt2 * initAdmittance -
+                 volt1 / Complex(mResistance, omega * mInductance);
+  SPDLOG_LOGGER_INFO(mSLog, "initial voltages: v_k {} v_m {}", volt1, volt2);
+  SPDLOG_LOGGER_INFO(mSLog, "initial currents: i_km {} i_mk {}", cur1, cur2);
+
+  (**mIntfCurrent)(0, 0) = cur1;
+
+  mVolt1.resize(mBufSize, volt1);
+  mVolt2.resize(mBufSize, volt2);
+  mCur1.resize(mBufSize, cur1);
+  mCur2.resize(mBufSize, cur2);
+}
+
+Complex SP::Ph1::DecouplingLine::interpolate(std::vector<Complex> &data) {
+  Complex c1 = data[mBufIdx];
+  Complex c2 = mBufIdx == mBufSize - 1 ? data[0] : data[mBufIdx + 1];
+  return mAlpha * c1 + (1 - mAlpha) * c2;
+}
+
+void SP::Ph1::DecouplingLine::step(Real time, Int timeStepCount) {
+  Complex volt1 = interpolate(mVolt1);
+  Complex volt2 = interpolate(mVolt2);
+  Complex cur1 = interpolate(mCur1);
+  Complex cur2 = interpolate(mCur2);
+
+  if (timeStepCount == 0) {
+    **mSrcCur1Ref = cur1 - volt1 / (mSurgeImpedance + mResistance / 4);
+    **mSrcCur2Ref = cur2 - volt2 / (mSurgeImpedance + mResistance / 4);
+  } else {
+    Real denom = (mSurgeImpedance + mResistance / 4) *
+                 (mSurgeImpedance + mResistance / 4);
+    **mSrcCur1Ref = -mSurgeImpedance / denom *
+                        (volt2 + (mSurgeImpedance - mResistance / 4) * cur2) -
+                    mResistance / 4 / denom *
+                        (volt1 + (mSurgeImpedance - mResistance / 4) * cur1);
+    **mSrcCur2Ref = -mSurgeImpedance / denom *
+                        (volt1 + (mSurgeImpedance - mResistance / 4) * cur1) -
+                    mResistance / 4 / denom *
+                        (volt2 + (mSurgeImpedance - mResistance / 4) * cur2);
+    const Complex carrierRotation = std::polar(1., -mSystemOmega * mDelay);
+    **mSrcCur1Ref = **mSrcCur1Ref * carrierRotation;
+    **mSrcCur2Ref = **mSrcCur2Ref * carrierRotation;
+  }
+  mSrcCur1->set(**mSrcCur1Ref);
+  mSrcCur2->set(**mSrcCur2Ref);
+}
+
+void SP::Ph1::DecouplingLine::postStep() {
+  mVolt1[mBufIdx] = -mRes1->intfVoltage()(0, 0);
+  mVolt2[mBufIdx] = -mRes2->intfVoltage()(0, 0);
+  mCur1[mBufIdx] = -mRes1->intfCurrent()(0, 0) + mSrcCur1->get();
+  mCur2[mBufIdx] = -mRes2->intfCurrent()(0, 0) + mSrcCur2->get();
+
+  mBufIdx++;
+  if (mBufIdx == mBufSize)
+    mBufIdx = 0;
+}
+
+void SP::Ph1::DecouplingLine::mnaParentPreStep(Real time, Int timeStepCount) {
+  step(time, timeStepCount);
+  mSrc1->mnaPreStep(time, timeStepCount);
+  mSrc2->mnaPreStep(time, timeStepCount);
+  mnaCompApplyRightSideVectorStamp(**mRightVector);
+}
+
+void SP::Ph1::DecouplingLine::mnaParentPostStep(
+    Real time, Int timeStepCount, Attribute<Matrix>::Ptr &leftVector) {
+  mnaCompUpdateVoltage(**leftVector);
+  mnaCompUpdateCurrent(**leftVector);
+  postStep();
+}
+
+void SP::Ph1::DecouplingLine::mnaCompUpdateVoltage(const Matrix &leftVector) {
+  (**mIntfVoltage)(0, 0) =
+      -mRes2->intfVoltage()(0, 0) + mRes1->intfVoltage()(0, 0);
+}
+
+void SP::Ph1::DecouplingLine::mnaCompUpdateCurrent(const Matrix &leftVector) {
+  (**mIntfCurrent)(0, 0) = -mRes1->intfCurrent()(0, 0) + mSrcCur1->get();
+}
+
+void SP::Ph1::DecouplingLine::mnaParentAddPreStepDependencies(
+    AttributeBase::List &prevStepDependencies,
+    AttributeBase::List &attributeDependencies,
+    AttributeBase::List &modifiedAttributes) {
+  prevStepDependencies.push_back(mStates);
+  modifiedAttributes.push_back(mRightVector);
+}
+
+void SP::Ph1::DecouplingLine::mnaParentAddPostStepDependencies(
+    AttributeBase::List &prevStepDependencies,
+    AttributeBase::List &attributeDependencies,
+    AttributeBase::List &modifiedAttributes,
+    Attribute<Matrix>::Ptr &leftVector) {
+  attributeDependencies.push_back(leftVector);
+  modifiedAttributes.push_back(mIntfVoltage);
+  modifiedAttributes.push_back(mIntfCurrent);
+  modifiedAttributes.push_back(mStates);
+}
