@@ -31,6 +31,8 @@ static const Real LUMPED_BOUND_VOLTAGE = 2.e-6;
 static const Real LUMPED_BOUND_CURRENT = 1.e-5;
 static const Real EMT_BOUND_VOLTAGE = 5.e-6;
 static const Real EMT_BOUND_CURRENT = 5.e-5;
+static const Real CONVENTION_BOUND = 1.e-12;
+static const Real CONVENTION_SEPARATION = 1.;
 static const Real STALE_ATTRIBUTE_FLOOR = 1.e-12;
 
 static Int gFailures = 0;
@@ -66,7 +68,7 @@ static MatrixComp balancedPhasor(Complex phasor) {
 }
 
 static MatrixComp balanced(Real magnitude) {
-  return balancedPhasor(Complex(magnitude, 0));
+  return balancedPhasor(nodePhasor(Complex(magnitude, 0)));
 }
 
 static Real envelope(Real time) {
@@ -119,6 +121,15 @@ static void reportBelow(const String &name, Real value, Real limit) {
   std::cout << (passed ? "  PASS  " : "  FAIL  ") << std::left << std::setw(60)
             << name << std::right << std::scientific << std::setprecision(3)
             << value << " < " << limit << std::endl;
+  if (!passed)
+    ++gFailures;
+}
+
+static void reportAbove(const String &name, Real value, Real floor) {
+  bool passed = value > floor;
+  std::cout << (passed ? "  PASS  " : "  FAIL  ") << std::left << std::setw(60)
+            << name << std::right << std::scientific << std::setprecision(3)
+            << value << " > " << floor << std::endl;
   if (!passed)
     ++gFailures;
 }
@@ -338,9 +349,12 @@ static void runDpCase(const String &tag, Real frequency) {
 struct EmtPh1Rig {
   std::shared_ptr<Simulation> sim;
   std::shared_ptr<EMT::Ph1::VoltageSource> source;
+  std::shared_ptr<EMT::Ph1::DecouplingLine> line;
   EMT::SimNode::Ptr node2;
   std::vector<Real> voltage;
   std::vector<Real> current;
+  std::vector<Real> historyCurrent;
+  std::vector<Real> sampleTimes;
 };
 
 static EmtPh1Rig makeEmtPh1Rig(const String &name, Real frequency,
@@ -391,9 +405,11 @@ static EmtPh1Rig emtPh1DecoupledRig(const String &tag, Real frequency) {
   line->setParameters(RESISTANCE, INDUCTANCE, CAPACITANCE);
   line->connect({n1, n2});
 
-  return makeEmtPh1Rig(tag + "_EMT_Ph1_decoupled", frequency,
-                       SystemComponentList{line}, n1, n2,
-                       SimNode<Real>::List{});
+  EmtPh1Rig rig =
+      makeEmtPh1Rig(tag + "_EMT_Ph1_decoupled", frequency,
+                    SystemComponentList{line}, n1, n2, SimNode<Real>::List{});
+  rig.line = line;
+  return rig;
 }
 
 static EmtPh1Rig emtPh1LumpedRig(const String &tag, Real frequency) {
@@ -438,6 +454,8 @@ static std::vector<Real> runEmtPh1(std::vector<EmtPh1Rig *> rigs) {
     for (auto rig : rigs) {
       rig->voltage.push_back(rig->node2->singleVoltage());
       rig->current.push_back(rig->source->intfCurrent()(0, 0));
+      if (rig->line)
+        rig->historyCurrent.push_back(**rig->line->mSrcCur1Ref);
     }
     times.push_back(time);
   }
@@ -447,7 +465,7 @@ static std::vector<Real> runEmtPh1(std::vector<EmtPh1Rig *> rigs) {
   return times;
 }
 
-static void runEmtPh1Case(const String &tag, Real frequency) {
+static EmtPh1Rig runEmtPh1Case(const String &tag, Real frequency) {
   EmtPh1Rig decoupled = emtPh1DecoupledRig(tag, frequency);
   EmtPh1Rig lumped = emtPh1LumpedRig(tag, frequency);
 
@@ -461,14 +479,19 @@ static void runEmtPh1Case(const String &tag, Real frequency) {
          relativeRmse(decoupled.current, lumped.current, times, SETTLE_TIME,
                       MODULATION_START),
          EMT_BOUND_CURRENT);
+  decoupled.sampleTimes = times;
+  return decoupled;
 }
 
 struct EmtPh3Rig {
   std::shared_ptr<Simulation> sim;
   std::shared_ptr<EMT::Ph3::VoltageSource> source;
+  std::shared_ptr<EMT::Ph3::DecouplingLine> line;
   EMT::SimNode::Ptr node2;
   std::vector<Real> voltage;
   std::vector<Real> current;
+  std::vector<Real> historyCurrent;
+  std::vector<Real> sampleTimes;
 };
 
 static EmtPh3Rig makeEmtPh3Rig(const String &name, Real frequency,
@@ -512,7 +535,7 @@ static EmtPh3Rig emtPh3DecoupledRig(const String &tag, Real frequency) {
   auto n1 = EMT::SimNode::make(tag + "_emt3_dec_n1", PhaseType::ABC);
   auto n2 = EMT::SimNode::make(tag + "_emt3_dec_n2", PhaseType::ABC);
   n1->setInitialVoltage(balanced(SOURCE_VOLTAGE));
-  n2->setInitialVoltage(balancedPhasor(loadEndVoltage(frequency)));
+  n2->setInitialVoltage(balancedPhasor(nodePhasor(loadEndVoltage(frequency))));
 
   auto line = EMT::Ph3::DecouplingLine::make(tag + "_emt3_dec_line",
                                              Logger::Level::off);
@@ -521,9 +544,11 @@ static EmtPh3Rig emtPh3DecoupledRig(const String &tag, Real frequency) {
                       Math::singlePhaseParameterToThreePhase(CAPACITANCE));
   line->connect({n1, n2});
 
-  return makeEmtPh3Rig(tag + "_EMT_Ph3_decoupled", frequency,
-                       SystemComponentList{line}, n1, n2,
-                       SimNode<Real>::List{});
+  EmtPh3Rig rig =
+      makeEmtPh3Rig(tag + "_EMT_Ph3_decoupled", frequency,
+                    SystemComponentList{line}, n1, n2, SimNode<Real>::List{});
+  rig.line = line;
+  return rig;
 }
 
 static EmtPh3Rig emtPh3LumpedRig(const String &tag, Real frequency) {
@@ -531,8 +556,8 @@ static EmtPh3Rig emtPh3LumpedRig(const String &tag, Real frequency) {
   auto n2 = EMT::SimNode::make(tag + "_emt3_pi_n2", PhaseType::ABC);
   auto vn = EMT::SimNode::make(tag + "_emt3_pi_vn", PhaseType::ABC);
   n1->setInitialVoltage(balanced(SOURCE_VOLTAGE));
-  n2->setInitialVoltage(balancedPhasor(loadEndVoltage(frequency)));
-  vn->setInitialVoltage(balancedPhasor(midPointVoltage(frequency)));
+  n2->setInitialVoltage(balancedPhasor(nodePhasor(loadEndVoltage(frequency))));
+  vn->setInitialVoltage(balancedPhasor(nodePhasor(midPointVoltage(frequency))));
 
   auto res = EMT::Ph3::Resistor::make(tag + "_emt3_pi_res");
   res->setParameters(Math::singlePhaseParameterToThreePhase(RESISTANCE));
@@ -567,6 +592,8 @@ static std::vector<Real> runEmtPh3(std::vector<EmtPh3Rig *> rigs) {
     for (auto rig : rigs) {
       rig->voltage.push_back(rig->node2->singleVoltage(PhaseType::A));
       rig->current.push_back(rig->source->intfCurrent()(0, 0));
+      if (rig->line)
+        rig->historyCurrent.push_back((**rig->line->mSrcCur1Ref)(0, 0));
     }
     times.push_back(time);
   }
@@ -576,7 +603,7 @@ static std::vector<Real> runEmtPh3(std::vector<EmtPh3Rig *> rigs) {
   return times;
 }
 
-static void runEmtPh3Case(const String &tag, Real frequency) {
+static EmtPh3Rig runEmtPh3Case(const String &tag, Real frequency) {
   EmtPh3Rig decoupled = emtPh3DecoupledRig(tag, frequency);
   EmtPh3Rig lumped = emtPh3LumpedRig(tag, frequency);
 
@@ -590,6 +617,31 @@ static void runEmtPh3Case(const String &tag, Real frequency) {
          relativeRmse(decoupled.current, lumped.current, times, SETTLE_TIME,
                       MODULATION_START),
          EMT_BOUND_CURRENT);
+  decoupled.sampleTimes = times;
+  return decoupled;
+}
+
+static std::vector<Real> negated(const std::vector<Real> &values) {
+  std::vector<Real> result;
+  for (Real value : values)
+    result.push_back(-value);
+  return result;
+}
+
+static void runConventionCase(const String &tag, const EmtPh1Rig &ph1,
+                              const EmtPh3Rig &ph3) {
+  reportBelow(tag + " EMT Ph3 phase A against Ph1, same circuit",
+              relativeRmse(ph3.voltage, ph1.voltage, ph1.sampleTimes,
+                           SETTLE_TIME, MODULATION_START),
+              CONVENTION_BOUND);
+  reportBelow(tag + " EMT Ph3 history source against the negated Ph1",
+              relativeRmse(ph3.historyCurrent, negated(ph1.historyCurrent),
+                           ph1.sampleTimes, SETTLE_TIME, MODULATION_START),
+              CONVENTION_BOUND);
+  reportAbove(tag + " EMT Ph3 history source against the unnegated Ph1",
+              relativeRmse(ph3.historyCurrent, ph1.historyCurrent,
+                           ph1.sampleTimes, SETTLE_TIME, MODULATION_START),
+              CONVENTION_SEPARATION);
 }
 
 int main(int argc, char *argv[]) {
@@ -602,8 +654,9 @@ int main(int argc, char *argv[]) {
   for (Real frequency : {50., 60.}) {
     String tag = frequency == 50. ? "f50" : "f60";
     runDpCase(tag, frequency);
-    runEmtPh1Case(tag, frequency);
-    runEmtPh3Case(tag, frequency);
+    EmtPh1Rig ph1 = runEmtPh1Case(tag, frequency);
+    EmtPh3Rig ph3 = runEmtPh3Case(tag, frequency);
+    runConventionCase(tag, ph1, ph3);
   }
 
   std::cout << (gFailures == 0 ? "All checks passed" : "Checks failed")
