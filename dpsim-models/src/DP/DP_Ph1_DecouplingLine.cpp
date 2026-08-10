@@ -82,6 +82,7 @@ void DP::Ph1::DecouplingLine::mnaParentInitialize(
   if (mDelay < timeStep)
     throw SystemError("Timestep too large for decoupling");
 
+  mSystemOmega = omega;
   mBufSize = static_cast<UInt>(ceil(mDelay / timeStep));
   mAlpha = 1 - (mBufSize - mDelay / timeStep);
   SPDLOG_LOGGER_INFO(mSLog, "bufsize {} alpha {}", mBufSize, mAlpha);
@@ -136,10 +137,9 @@ void DP::Ph1::DecouplingLine::step(Real time, Int timeStepCount) {
                         (volt1 + (mSurgeImpedance - mResistance / 4) * cur1) -
                     mResistance / 4 / denom *
                         (volt2 + (mSurgeImpedance - mResistance / 4) * cur2);
-    **mSrcCur1Ref = **mSrcCur1Ref * Complex(cos(-2. * PI * 50 * mDelay),
-                                            sin(-2. * PI * 50 * mDelay));
-    **mSrcCur2Ref = **mSrcCur2Ref * Complex(cos(-2. * PI * 50 * mDelay),
-                                            sin(-2. * PI * 50 * mDelay));
+    const Complex carrierRotation = std::polar(1., -mSystemOmega * mDelay);
+    **mSrcCur1Ref = **mSrcCur1Ref * carrierRotation;
+    **mSrcCur2Ref = **mSrcCur2Ref * carrierRotation;
   }
   mSrcCur1->set(**mSrcCur1Ref);
   mSrcCur2->set(**mSrcCur2Ref);

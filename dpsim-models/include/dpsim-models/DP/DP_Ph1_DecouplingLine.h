@@ -21,6 +21,7 @@ class DecouplingLine : public CompositePowerComp<Complex>,
                        public SharedFactory<DecouplingLine> {
 protected:
   Real mDelay;
+  Real mSystemOmega = 0.;
   Real mResistance;
   Real mInductance, mCapacitance;
   Real mSurgeImpedance;
