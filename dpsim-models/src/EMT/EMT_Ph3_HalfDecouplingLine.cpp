@@ -46,29 +46,12 @@ void EMT::Ph3::HalfDecouplingLine::initializeParentFromNodesAndTerminals(
   // terminal voltage.
   **mSendingVolt = mHistorySign * (**mIntfVoltage);
   **mSendingCur = Matrix::Zero(3, 1);
+  publishInitialVoltage();
 }
 
 void EMT::Ph3::HalfDecouplingLine::mnaParentInitialize(
     Real omega, Real timeStep, Attribute<Matrix>::Ptr leftVector) {
-  mSystemOmega = omega;
-  sizeHistory(timeStep);
-
-  // Initialization based on static PI-line model. The far end voltage is read
-  // from the coupling source, which the other half published during its own
-  // initializeParentFromNodesAndTerminals.
-  MatrixComp voltNear = mHistorySign * initialVoltage(0);
-  MatrixComp voltFar = (**mReceivingVolt).cast<Complex>();
-
-  MatrixComp seriesAdmittance =
-      (mResistance + Complex(0, omega) * mInductance).inverse();
-  MatrixComp initAdmittance =
-      seriesAdmittance + Complex(0, omega) * mCapacitance / 2;
-  MatrixComp curNear = initAdmittance * voltNear - seriesAdmittance * voltFar;
-
-  SPDLOG_LOGGER_INFO(mSLog, "initial voltage: v_k {}", voltNear);
-  SPDLOG_LOGGER_INFO(mSLog, "initial current: i_k {}", curNear);
-
-  seedHistory(voltNear.real(), curNear.real());
+  initializeSteadyState(omega, timeStep);
 }
 
 void EMT::Ph3::HalfDecouplingLine::applySourceCurrent() {

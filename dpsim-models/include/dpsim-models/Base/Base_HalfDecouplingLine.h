@@ -32,16 +32,24 @@ protected:
   UInt mBufIdx = 0;
   UInt mBufSize = 0;
   Real mAlpha = 1.;
+  Real mTimeStep = 0;
+
+  MatrixComp mInitialInjection;
+  Bool mInjectionSet = false;
 
   MatrixVar<VarType>
   interpolate(const std::vector<MatrixVar<VarType>> &data) const;
   void sizeHistory(Real timeStep);
-  void seedHistory(const MatrixVar<VarType> &volt,
-                   const MatrixVar<VarType> &cur);
   void computeSourceCurrent(Int timeStepCount);
   void recordHistory();
 
+  MatrixComp distributedSteadyStateCurrent(const MatrixComp &voltNear,
+                                           const MatrixComp &voltFar) const;
+  MatrixComp injectionSteadyStateCurrent(const MatrixComp &voltNear) const;
+
   static VarType carrierRotation(Real omega, Real delay);
+  static MatrixVar<VarType> sampleAtLag(const MatrixComp &phasor, Real omega,
+                                        Real lag);
 
   virtual void applySourceCurrent() = 0;
   virtual MatrixVar<VarType> historyVoltage() = 0;
@@ -54,6 +62,9 @@ public:
   const typename Attribute<MatrixVar<VarType>>::Ptr mReceivingCur;
   const typename Attribute<MatrixVar<VarType>>::Ptr mSendingVolt;
   const typename Attribute<MatrixVar<VarType>>::Ptr mSendingCur;
+  /// Terminal voltage phasor, exchanged at frozen time before the first step
+  const Attribute<MatrixComp>::Ptr mSendingInitVolt;
+  const Attribute<MatrixComp>::Ptr mReceivingInitVolt;
 
   HalfDecouplingLine(String uid, String name, UInt numPhases,
                      Logger::Level logLevel);
@@ -62,6 +73,15 @@ public:
   void
   setCouplingSource(typename Attribute<MatrixVar<VarType>>::Ptr receivingVolt,
                     typename Attribute<MatrixVar<VarType>>::Ptr receivingCur);
+  void setInitialCouplingSource(Attribute<MatrixComp>::Ptr receivingInitVolt);
+  /// Terminal injection from the power flow, in the sign convention of the
+  /// terminal. When it is set the seed needs no far-end quantity at all.
+  void setInitialInjection(const MatrixComp &power);
+  /// Publishes the terminal voltage phasor for the far end to read
+  void publishInitialVoltage();
+  /// Re-runnable frozen-time seed: exchanging again and calling this again is
+  /// one boundary iteration at t=0
+  void initializeSteadyState(Real omega, Real timeStep);
 
   Real delay() const { return mDelay; }
   UInt bufferSize() const { return mBufSize; }

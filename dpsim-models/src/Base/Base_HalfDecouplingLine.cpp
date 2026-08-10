@@ -24,7 +24,11 @@ Base::HalfDecouplingLine<VarType>::HalfDecouplingLine(String uid, String name,
       mSendingVolt(this->mAttributes->template create<MatrixVar<VarType>>(
           "sending_volt", MatrixVar<VarType>::Zero(numPhases, 1))),
       mSendingCur(this->mAttributes->template create<MatrixVar<VarType>>(
-          "sending_cur", MatrixVar<VarType>::Zero(numPhases, 1))) {
+          "sending_cur", MatrixVar<VarType>::Zero(numPhases, 1))),
+      mSendingInitVolt(this->mAttributes->template create<MatrixComp>(
+          "sending_init_volt", MatrixComp::Zero(numPhases, 1))),
+      mReceivingInitVolt(this->mAttributes->template createDynamic<MatrixComp>(
+          "receiving_init_volt")) {
 
   this->setVirtualNodeNumber(0);
   this->setTerminalNumber(1);
@@ -68,24 +72,92 @@ void Base::HalfDecouplingLine<VarType>::setCouplingSource(
 }
 
 template <typename VarType>
+void Base::HalfDecouplingLine<VarType>::setInitialCouplingSource(
+    Attribute<MatrixComp>::Ptr receivingInitVolt) {
+  mReceivingInitVolt->setReference(receivingInitVolt);
+}
+
+template <typename VarType>
+void Base::HalfDecouplingLine<VarType>::setInitialInjection(
+    const MatrixComp &power) {
+  mInitialInjection = power;
+  mInjectionSet = true;
+}
+
+template <typename VarType>
+void Base::HalfDecouplingLine<VarType>::publishInitialVoltage() {
+  **mSendingInitVolt = this->initialVoltage(0);
+}
+
+template <typename VarType>
 void Base::HalfDecouplingLine<VarType>::sizeHistory(Real timeStep) {
   if (mDelay < timeStep)
     throw SystemError("Timestep too large for decoupling");
 
+  mTimeStep = timeStep;
   mBufSize = static_cast<UInt>(ceil(mDelay / timeStep));
   mAlpha = 1 - (mBufSize - mDelay / timeStep);
   SPDLOG_LOGGER_INFO(this->mSLog, "bufsize {} alpha {}", mBufSize, mAlpha);
 }
 
 template <typename VarType>
-void Base::HalfDecouplingLine<VarType>::seedHistory(
-    const MatrixVar<VarType> &volt, const MatrixVar<VarType> &cur) {
-  mVoltBuf.assign(mBufSize, volt);
-  mCurBuf.assign(mBufSize, cur);
+MatrixComp Base::HalfDecouplingLine<VarType>::injectionSteadyStateCurrent(
+    const MatrixComp &voltNear) const {
+  return (mInitialInjection.array() / voltNear.array()).conjugate();
+}
+
+template <typename VarType>
+MatrixComp Base::HalfDecouplingLine<VarType>::distributedSteadyStateCurrent(
+    const MatrixComp &voltNear, const MatrixComp &voltFar) const {
+  Real theta = mSystemOmega * mDelay;
+  Real cosTheta = cos(theta);
+  Real sinTheta = sin(theta);
+
+  MatrixComp identity = MatrixComp::Identity(mNumPhases, mNumPhases);
+  MatrixComp admittance =
+      mSurgeImpedance.cast<Complex>().inverse() / Complex(0., sinTheta);
+  MatrixComp lumped = (mResistance / 4).cast<Complex>();
+
+  MatrixComp sum =
+      (identity + admittance * lumped * (cosTheta - 1.)).inverse() *
+      (admittance * (cosTheta - 1.)) * (voltNear + voltFar);
+  MatrixComp difference =
+      (identity + admittance * lumped * (cosTheta + 1.)).inverse() *
+      (admittance * (cosTheta + 1.)) * (voltNear - voltFar);
+
+  return 0.5 * (sum + difference);
+}
+
+template <typename VarType>
+void Base::HalfDecouplingLine<VarType>::initializeSteadyState(Real omega,
+                                                              Real timeStep) {
+  mSystemOmega = omega;
+  sizeHistory(timeStep);
+
+  MatrixComp voltNode = this->initialVoltage(0);
+  MatrixComp curNode =
+      mInjectionSet
+          ? injectionSteadyStateCurrent(voltNode)
+          : distributedSteadyStateCurrent(voltNode, **mReceivingInitVolt);
+
+  MatrixComp voltNear = mHistorySign * voltNode;
+  MatrixComp curNear = mHistorySign * curNode;
+
+  SPDLOG_LOGGER_INFO(this->mSLog, "steady state seed: v_k {} i_k {} from {}",
+                     voltNear, curNear,
+                     mInjectionSet ? "terminal injection" : "line ends");
+
+  mVoltBuf.resize(mBufSize);
+  mCurBuf.resize(mBufSize);
+  for (UInt idx = 0; idx < mBufSize; idx++) {
+    Real lag = (mBufSize - idx) * mTimeStep;
+    mVoltBuf[idx] = sampleAtLag(voltNear, omega, lag);
+    mCurBuf[idx] = sampleAtLag(curNear, omega, lag);
+  }
   mBufIdx = 0;
 
-  **mSendingVolt = volt;
-  **mSendingCur = cur;
+  **mSendingVolt = interpolate(mVoltBuf);
+  **mSendingCur = interpolate(mCurBuf);
 }
 
 template <typename VarType>
@@ -106,6 +178,19 @@ template <>
 Complex Base::HalfDecouplingLine<Complex>::carrierRotation(Real omega,
                                                            Real delay) {
   return std::polar(1., -omega * delay);
+}
+
+template <>
+Matrix Base::HalfDecouplingLine<Real>::sampleAtLag(const MatrixComp &phasor,
+                                                   Real omega, Real lag) {
+  return (phasor * std::polar(1., -omega * lag)).real();
+}
+
+template <>
+MatrixComp
+Base::HalfDecouplingLine<Complex>::sampleAtLag(const MatrixComp &phasor,
+                                               Real omega, Real lag) {
+  return phasor;
 }
 
 template <typename VarType>

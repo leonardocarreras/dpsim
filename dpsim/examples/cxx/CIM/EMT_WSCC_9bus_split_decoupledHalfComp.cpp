@@ -31,10 +31,19 @@ void decoupleLine(SystemTopology &sys, const String &lineName,
   halfLineA->connect({sys.node<CPS::SimNode<Real>>(node1)});
   halfLineA->setParameters(Rline, Lline, Cline);
   halfLineA->setCouplingSource(halfLineB->mSendingVolt, halfLineB->mSendingCur);
+  halfLineA->setInitialCouplingSource(halfLineB->mSendingInitVolt);
 
   halfLineB->connect({sys.node<CPS::SimNode<Real>>(node2)});
   halfLineB->setParameters(Rline, Lline, Cline);
   halfLineB->setCouplingSource(halfLineA->mSendingVolt, halfLineA->mSendingCur);
+  halfLineB->setInitialCouplingSource(halfLineA->mSendingInitVolt);
+
+  // The frozen-time boundary exchange, run by the driver before any solver
+  // initializes. Each half publishes, then every half seeds from a complete
+  // set, which no per-component initialization order can guarantee once the
+  // halves sit in different subnets.
+  halfLineA->publishInitialVoltage();
+  halfLineB->publishInitialVoltage();
 
   sys.addComponent(halfLineA);
   sys.addComponent(halfLineB);
