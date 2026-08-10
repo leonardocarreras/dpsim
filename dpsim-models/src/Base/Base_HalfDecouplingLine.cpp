@@ -201,16 +201,12 @@ void Base::HalfDecouplingLine<VarType>::computeSourceCurrent(
   const MatrixVar<VarType> &voltFar = **mReceivingVolt;
   const MatrixVar<VarType> &curFar = **mReceivingCur;
 
-  if (timeStepCount == 0) {
-    **mSrcCtrledCurrent = curNear - mTerminatingImpedanceInv * voltNear;
-  } else {
-    **mSrcCtrledCurrent =
-        -mSurgeImpedanceVar * mDenomInv *
-            (voltFar + (mSurgeImpedanceVar - mLumpedResistanceVar) * curFar) -
-        mLumpedResistanceVar * mDenomInv *
-            (voltNear + (mSurgeImpedanceVar - mLumpedResistanceVar) * curNear);
-    **mSrcCtrledCurrent *= carrierRotation(mSystemOmega, mDelay);
-  }
+  **mSrcCtrledCurrent =
+      -mSurgeImpedanceVar * mDenomInv *
+          (voltFar + (mSurgeImpedanceVar - mLumpedResistanceVar) * curFar) -
+      mLumpedResistanceVar * mDenomInv *
+          (voltNear + (mSurgeImpedanceVar - mLumpedResistanceVar) * curNear);
+  **mSrcCtrledCurrent *= carrierRotation(mSystemOmega, mDelay);
 
   applySourceCurrent();
 }
