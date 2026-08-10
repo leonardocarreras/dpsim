@@ -220,6 +220,7 @@ list(APPEND MODELS_SOURCES
 	Signal/TurbineGovernor.cpp
 	Signal/TurbineGovernorType1.cpp
 	Signal/PLL.cpp
+	Signal/SFAConversionOperators.cpp
 	Signal/Integrator.cpp
 	Signal/PowerControllerVSI.cpp
 	Signal/SineWaveGenerator.cpp
