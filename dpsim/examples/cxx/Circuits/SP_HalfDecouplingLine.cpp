@@ -145,9 +145,6 @@ static SpRig makeSpRig(const String &name, Real frequency,
 
   auto system = SystemTopology(frequency, nodes, components);
 
-  auto logger = DataLogger::make(name, false);
-  logger->logAttribute("i1", rig.source->attribute("i_intf"));
-
   rig.sim = std::make_shared<Simulation>(name, Logger::Level::off);
   rig.sim->setSystem(system);
   rig.sim->setTimeStep(TIME_STEP);
@@ -155,7 +152,7 @@ static SpRig makeSpRig(const String &name, Real frequency,
   rig.sim->setDomain(Domain::SP);
   rig.sim->setSolverType(Solver::Type::MNA);
   rig.sim->doSplitSubnets(true);
-  rig.sim->addLogger(logger);
+  rig.sim->keepAlive(rig.source->attribute("i_intf"));
 
   rig.node2 = n2;
   return rig;
