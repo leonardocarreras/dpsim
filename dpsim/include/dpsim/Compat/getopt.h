@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2002 Todd C. Miller <Todd.Miller@courtesan.com>
+// SPDX-FileCopyrightText: 2000 The NetBSD Foundation, Inc.
+// SPDX-License-Identifier: ISC AND BSD-2-Clause
 // editorconfig-checker-disable-file
 #ifndef __GETOPT_H__
 /**

@@ -1,4 +1,5 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: 2017-2022 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+// SPDX-License-Identifier: MPL-2.0
 
 #include <DPsim.h>
 #include <dpsim-villas/Interfaces.h>
