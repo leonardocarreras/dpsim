@@ -3,3 +3,6 @@
 
 # Reformat all C++ code with clang-format
 d75bf1e5bee08c6bb4c648cad0d89a494732c58e
+
+# Replace every license header with its SPDX form
+4749294dcbe154ca24fbaca04d78222e477c6947
