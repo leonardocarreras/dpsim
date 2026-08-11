@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+# SPDX-License-Identifier: MPL-2.0
+
 # Generates the tutorial circuit diagrams. Colours are chosen to read on light and dark grounds,
 # since an <img>-embedded SVG cannot inherit the page's currentColor.
 import pathlib, sys

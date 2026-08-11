@@ -6,6 +6,11 @@ description: >
   Controllers, regulators, generators and decoupling elements in the Signal namespace.
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 Signal models live in `CPS::Signal` and are domain independent: the same controller drives a
 dynamic phasor or an electromagnetic transient machine model, because it operates on scalar
 signals rather than on network quantities. The exception is the decoupling group, which exists

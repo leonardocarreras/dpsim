@@ -7,6 +7,11 @@ description: >
 weight: 12
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 A converter model needs an angle to transform between the phase frame and its control frame, and a
 control law that decides what to synthesise. The two questions are separable, and the answer to the
 first is what distinguishes a grid-following converter from a grid-forming one.

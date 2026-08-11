@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2020-2024 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+# SPDX-License-Identifier: MPL-2.0
+
 I, Markus Mirz hereby sign-off-by all of my past commits to this repo subject to the Developer Certificate of Origin (DCO), Version 1.1. In the past I have used emails: mmirz@eonerc.rwth-aachen.de
 
 6acbea703636e82189da1382321bb65b942110b9 move singlePhaseToThreePhase methods to Math

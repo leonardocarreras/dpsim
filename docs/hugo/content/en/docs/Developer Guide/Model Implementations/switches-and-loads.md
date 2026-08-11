@@ -7,6 +7,11 @@ description: >
 weight: 21
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 The models are derived under [switches]({{< ref "/docs/Concepts/Models/switches.md" >}}) and
 [loads]({{< ref "/docs/Concepts/Models/loads.md" >}}). This page covers only their arrangement in
 code. Availability per domain is in

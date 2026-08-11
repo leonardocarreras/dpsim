@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2017-2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+# SPDX-License-Identifier: MPL-2.0
+
 set(LIBRARIES "dpsim")
 
 if(NOT WIN32)

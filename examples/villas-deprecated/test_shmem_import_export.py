@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2021-2025 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+# SPDX-License-Identifier: MPL-2.0
+
 # This example reads a sine signal from VILLASnode that modifies the active power set point
 # of the PQ load. The n2 voltage is exported to a file via villas.
 

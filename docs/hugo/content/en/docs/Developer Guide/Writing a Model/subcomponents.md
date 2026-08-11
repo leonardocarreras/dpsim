@@ -8,6 +8,11 @@ description: >
 weight: 9
 ---
 
+<!--
+SPDX-FileCopyrightText: 2022-2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 In DPsim, there are many components which can be broken down into individual subcomponents. Examples are the `PiLine`, consisting of an inductor, three resistors, and two capacitors, or the `NetworkInjection` which contains a voltage source.
 On the C++ class level, these subcomponents are represented by member variables within the larger component class. In this guide, all components which have subcomponents are called **composite components**.
 

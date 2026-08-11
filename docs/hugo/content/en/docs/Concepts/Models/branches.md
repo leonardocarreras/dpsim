@@ -8,6 +8,11 @@ description: >
 weight: 2
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 Both line models below are composite components: they do not stamp the system matrix directly
 but are built from resistor, inductor and capacitor subcomponents, each of which contributes its
 own stamp. See [subcomponents]({{< ref "/docs/Developer Guide/Writing a Model/subcomponents.md" >}}) for how that

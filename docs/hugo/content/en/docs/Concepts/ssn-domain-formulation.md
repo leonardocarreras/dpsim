@@ -7,6 +7,11 @@ description: >
 weight: 5
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 A component's state-space model does not change between simulation domains. The same
 $\boldsymbol{A}$, $\boldsymbol{B}$, $\boldsymbol{C}$ and $\boldsymbol{D}$ describe the same physics
 whichever domain solves them. What changes is the operator that is discretised, and that difference

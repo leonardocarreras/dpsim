@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2023 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+# SPDX-License-Identifier: MPL-2.0
+
 include(FetchContent)
 FetchContent_Declare(cim-data
 	GIT_REPOSITORY https://github.com/dpsim-simulator/cim-grid-data.git

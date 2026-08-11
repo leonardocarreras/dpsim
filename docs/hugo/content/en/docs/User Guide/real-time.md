@@ -8,6 +8,11 @@ description: >
 weight: 5
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 Normally a simulation runs as fast as it can: a one-second study finishes in whatever time the
 solver needs. In a real-time simulation, one second of simulated time takes one second of wall clock
 time, no faster and no slower.

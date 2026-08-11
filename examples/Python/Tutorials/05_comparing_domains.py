@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+# SPDX-License-Identifier: MPL-2.0
+
 # The same RL circuit in EMT and DP, with the DP result shifted back onto the carrier.
 # Documented at docs/hugo/content/en/docs/Tutorials/Python/comparing-domains/index.md
 import dpsimpy

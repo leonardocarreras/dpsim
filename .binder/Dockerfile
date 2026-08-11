@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2017-2025 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+# SPDX-License-Identifier: MPL-2.0
+
 # sogno/dpsim:dev is built by dpsim-git/packaging/Docker/Dockerfile.dev
 ARG BASE_IMAGE=sogno/dpsim:dev
 

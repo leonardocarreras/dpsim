@@ -7,6 +7,11 @@ description: >
 weight: 7
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 Extracting a state-space model, as described under
 [state-space extraction]({{< ref "state-space-extraction-theory.md" >}}), produces a discrete state
 matrix. Its eigenvalues describe how the system behaves without simulating it: which oscillations

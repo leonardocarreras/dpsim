@@ -1,3 +1,6 @@
+% SPDX-FileCopyrightText: 2017-2024 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+% SPDX-License-Identifier: MPL-2.0
+
 function [ Lad, Laq, Lfd, L1q, L1d, L2q, Rfd, R1d, R1q, R2q ] = StandardToFundamental( Ld, Lq, Ld_t, Lq_t, Ld_s, Lq_s, Ll, ...
     Ra, Td0_t, Tq0_t, Td0_s, Tq0_s)
 %StandardToFundamental converts Standard machine parameters to fundamental

@@ -6,6 +6,11 @@ description: >
 weight: 3
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 ## Entry point
 
 Almost everything runs from a single workflow, `.github/workflows/ci.yaml`. It

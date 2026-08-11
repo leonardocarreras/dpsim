@@ -7,6 +7,11 @@ description: >
 weight: 8
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 Every simulated network stops somewhere. What lies beyond the boundary has to be represented by
 something, and once it is, the question of holding voltage at a bus becomes a question about what
 that representation will support.

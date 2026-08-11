@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2025 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+# SPDX-License-Identifier: MPL-2.0
+
 find_path(SUITESPARSE_INCLUDE_DIR NAMES amd.h)
 find_library(SUITESPARSE_AMD_LIBRARY NAMES amd)
 find_library(SUITESPARSE_COLAMD_LIBRARY NAMES colamd)

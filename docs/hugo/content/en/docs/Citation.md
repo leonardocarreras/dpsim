@@ -9,6 +9,11 @@ description: >
   Cite DPsim if you use it in published work.
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 If you use DPsim in your research, please cite the software paper below. If your work depends on
 a specific capability, cite the corresponding paper from
 [further publications](#further-publications) as well.

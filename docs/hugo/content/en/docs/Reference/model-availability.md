@@ -7,6 +7,11 @@ description: >
   Which simulation domain implements which model.
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 Which model exists in which domain. A tick means the domain has an implementation, a dash means it
 does not.
 

@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2025 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+
+SPDX-License-Identifier: MPL-2.0
+-->
+
 # Contributors
 
 We would like to thank all contributors who have helped develop and improve DPsim over the years, whether through code, research, testing, or feedback.

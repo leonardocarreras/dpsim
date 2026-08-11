@@ -7,6 +7,11 @@ description: >
   Configuring a VILLASnode interface, and the tasks and threads behind it.
 ---
 
+<!--
+SPDX-FileCopyrightText: 2022-2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 Why you would exchange data at all, and what it costs, is under
 [co-simulation]({{< ref "/docs/User Guide/co-simulation.md" >}}). This page is how it is configured
 and what it does to the task graph.

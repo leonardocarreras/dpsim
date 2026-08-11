@@ -8,6 +8,11 @@ description: >
 weight: 9
 ---
 
+<!--
+SPDX-FileCopyrightText: 2022-2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 Two different synchronous machine models are currently available:
 
 - the full order dq0 reference frame model (EMT, DP) [Kundur, Power system stability and control, 1994]

@@ -7,6 +7,11 @@ description: >
   An element that stores energy, the transient it produces, and how to choose a time step.
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 The circuit in [your first simulation]({{< ref "first-simulation.md" >}}) reaches its final value in
 a single step. A resistor is a purely algebraic element: it stores no energy, so the circuit has no
 state variable and its response to a change is instantaneous.

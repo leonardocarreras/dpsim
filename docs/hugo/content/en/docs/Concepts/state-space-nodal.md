@@ -7,6 +7,11 @@ description: >
 weight: 4
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 The state-space nodal (SSN) method represents a component by its own continuous
 state-space model and couples it to the network through the nodal admittance
 matrix. A component is described by

@@ -8,6 +8,11 @@ description: >
   The attribute system that carries component state and drives task scheduling.
 ---
 
+<!--
+SPDX-FileCopyrightText: 2022-2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 In DPsim, an attribute is a special kind of variable which usually stores a scalar or matrix value used in the simulation.
 Examples for attributes are the voltage of a node, the reference current of a current source, or the left and right vectors of the MNA matrix system.
 In general, attributes are instances of the `Attribute<T>` class, but they are usually stored and accessed through a custom smart pointer of type

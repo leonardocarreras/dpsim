@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2018-2025 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+# SPDX-License-Identifier: MPL-2.0
+
 example_test1:
   description: Shows hello world and succeeds everytime
   shell: True

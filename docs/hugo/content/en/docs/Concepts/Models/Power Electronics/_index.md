@@ -7,6 +7,11 @@ description: >
 aliases: ["/docs/models/power-electronics/","/docs/concepts/models/power-electronics/"]
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 Every inverter model here is averaged: the switching is not represented, and the converter is
 treated as a controllable voltage behind its filter. Averaging removes the switching frequency from
 the problem, which is what allows a step size set by the control bandwidth rather than by the

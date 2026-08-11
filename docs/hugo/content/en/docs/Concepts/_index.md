@@ -10,6 +10,11 @@ description: >
 aliases: ["/docs/concepts/"]
 ---
 
+<!--
+SPDX-FileCopyrightText: 2022-2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 The methods DPsim implements, described independently of the code. Nodal analysis and dynamic
 phasors underpin the main solver and have a page each. The [model]({{< ref "Models" >}}) pages
 give the physical equations for a component and how they are transformed for each supported

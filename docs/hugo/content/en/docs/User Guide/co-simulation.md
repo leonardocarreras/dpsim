@@ -8,6 +8,11 @@ aliases: ["/docs/overview/interfaces/"]
 date: 2025-02-13
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 Interfaces can be used to exchange simulation signals between a DPsim simulation and other soft- or hardware, for example an MQTT-broker or an FPGA.
 Simulation signals in the form of [Attributes]({{< ref "/docs/Developer Guide/Attributes and Scheduling/Attributes/index.md" >}}) can be **imported** or **exported** once per simulation time step.
 Interfaces are subclasses of `Interface` and implement the methods `addExport` and `addImport`, which add dependencies to the passed attribute that forward the attribute value from or to the interface.

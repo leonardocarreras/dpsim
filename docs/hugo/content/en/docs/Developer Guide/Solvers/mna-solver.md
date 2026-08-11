@@ -7,6 +7,11 @@ description: >
   The default solver: how it assembles, factorises and steps the system.
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 `MnaSolver<VarType>` is the solver almost every simulation uses. The method it implements is derived
 under [nodal analysis]({{< ref "/docs/Concepts/nodal-analysis.md" >}}); what a component must
 provide to take part is under

@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# SPDX-FileCopyrightText: 2019-2025 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+# SPDX-License-Identifier: MPL-2.0
+
 INPUT=$(mktemp)
 OUTPUT="logs/Shmem_Example/villas-pipe-out.log"
 CONFIG=$(mktemp)

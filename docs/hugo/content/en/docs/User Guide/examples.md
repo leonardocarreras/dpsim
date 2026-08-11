@@ -7,6 +7,11 @@ description: >
 aliases: ["/docs/examples/"]
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 If you are starting out, start with the [tutorials]({{< ref "/docs/Tutorials" >}}) instead. They
 work through one idea at a time in order, each as a complete script. This page is the inventory of
 what else the repository carries, which is the right thing once you know what you are looking for.

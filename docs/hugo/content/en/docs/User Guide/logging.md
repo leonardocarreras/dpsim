@@ -7,6 +7,11 @@ description: >
   Choosing what a simulation records, where it goes, and what it costs.
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 A simulation records nothing unless asked. Every quantity you want afterwards has to be named before
 the run, because the solver keeps only what the current step needs and discards the rest.
 

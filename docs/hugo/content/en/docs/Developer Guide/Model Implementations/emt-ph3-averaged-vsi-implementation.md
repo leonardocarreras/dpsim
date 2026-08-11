@@ -7,6 +7,11 @@ description: >
 weight: 28
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 The equations are derived under
 [EMT Ph3 averaged voltage source inverter]({{< ref "/docs/Concepts/Models/Power Electronics/emt-ph3-averaged-vsi.md" >}}).
 This page covers only their arrangement in code.

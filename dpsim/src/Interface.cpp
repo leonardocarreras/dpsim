@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: 2022-2024 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
 // SPDX-License-Identifier: Apache-2.0
 
 #include <dpsim/Interface.h>

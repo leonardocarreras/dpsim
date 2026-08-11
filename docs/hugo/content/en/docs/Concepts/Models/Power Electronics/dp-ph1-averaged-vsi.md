@@ -6,6 +6,11 @@ description: >
   Single-Phase Averaged Voltage Source Inverter with State-Space Nodal Interface (Dynamic Phasor)
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 This model ports the same grid-following averaged inverter into the dynamic-phasor (DP) domain, as a single positive-sequence complex envelope rather than three abc waveforms.
 The PLL, power filter, outer power control, and inner current control are baseband and stay real; only the LC filter's two states are genuine carrier-band envelopes and carry the $-j\omega_n$ shift described in [State-Space Nodal]({{< ref "state-space-nodal.md" >}}).
 

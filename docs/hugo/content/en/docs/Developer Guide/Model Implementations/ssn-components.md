@@ -7,6 +7,11 @@ description: >
 weight: 24
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 The method is derived under
 [state-space nodal components]({{< ref "/docs/Concepts/Models/ssn-components.md" >}}) and
 [state-space nodal]({{< ref "/docs/Concepts/state-space-nodal.md" >}}). This page covers only the

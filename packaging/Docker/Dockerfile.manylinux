@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2019-2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+# SPDX-License-Identifier: MPL-2.0
+
 # This Dockerfile is used to build Python wheels for uploading
 # binary releases of DPsim to PyPi.org
 #

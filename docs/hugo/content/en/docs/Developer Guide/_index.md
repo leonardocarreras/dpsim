@@ -10,6 +10,11 @@ description: >
 aliases: ["/docs/overview/","/docs/tasks/"]
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 These pages describe how DPsim is built rather than what it computes. They are the background
 for adding a component, changing a solver, or working out why a simulation behaves as it does.
 For the physics and the numerical methods, see [concepts]({{< ref "/docs/Concepts" >}}).

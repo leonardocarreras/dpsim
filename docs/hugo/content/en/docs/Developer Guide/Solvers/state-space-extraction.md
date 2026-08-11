@@ -8,6 +8,11 @@ description: >
 weight: 4
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 The method itself, what the extracted model means and where it is valid, is derived under
 [state-space extraction]({{< ref "/docs/Concepts/state-space-extraction-theory.md" >}}).
 This page covers enabling it and reading the result.

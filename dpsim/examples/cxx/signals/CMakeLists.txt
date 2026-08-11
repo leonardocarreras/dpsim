@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2020-2023 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+# SPDX-License-Identifier: MPL-2.0
+
 set(SIGNALS_SRCS
 	FIRFilter.cpp
 	TurbineGovernor.cpp

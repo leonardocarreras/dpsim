@@ -1,3 +1,6 @@
+% SPDX-FileCopyrightText: 2018-2024 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+% SPDX-License-Identifier: MPL-2.0
+
 % Compare DP VBR, EMT Classical and Reference stator currents for ABCFault
 % or LoadChange Simulation
 

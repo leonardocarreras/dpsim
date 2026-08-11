@@ -7,6 +7,11 @@ description: >
 weight: 22
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 The models are derived under [sources]({{< ref "/docs/Concepts/Models/sources.md" >}}). This page
 covers only the code.
 

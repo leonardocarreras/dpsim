@@ -7,6 +7,11 @@ description: >
 weight: 6
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 A load is specified as an active and a reactive power at a nominal voltage, but a nodal solver needs
 either an admittance or a current. The two ways of making that conversion behave differently as the
 terminal voltage moves away from nominal, and the difference matters more than the model's

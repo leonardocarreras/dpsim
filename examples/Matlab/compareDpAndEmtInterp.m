@@ -1,3 +1,6 @@
+% SPDX-FileCopyrightText: 2017-2024 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+% SPDX-License-Identifier: MPL-2.0
+
 function [mseDPInterp, mseEMTInterp] = compareDpAndEmtInterp(filenameRef, filenameVoltageDP, filenameVoltageEMT, plotNode)
 
 % Increment node to skip time column

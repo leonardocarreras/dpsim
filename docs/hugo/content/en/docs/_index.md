@@ -9,6 +9,11 @@ description: >
   Documentation for DPsim, a solver library for dynamic power system simulation.
 ---
 
+<!--
+SPDX-FileCopyrightText: 2022-2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 DPsim is a solver library for dynamic power system simulation.
 
 - It supports both the electromagnetic transient (EMT) and dynamic phasor (DP) domain for dynamic simulation.

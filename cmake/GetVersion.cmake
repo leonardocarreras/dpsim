@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2018-2023 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+# SPDX-License-Identifier: MPL-2.0
+
 # This CMake function sets the following variables:
 #
 # ${PREFIX}_VERSION_STR    v0.6.3

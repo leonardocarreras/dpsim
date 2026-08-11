@@ -6,6 +6,11 @@ description: >
   Three-Phase Averaged Grid-Forming Inverter with State-Space Nodal Interface
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 This model represents a grid-forming averaged voltage source inverter in the EMT domain.
 The control structure follows the state-space grid-forming converter of [Gao2022](https://ieeexplore.ieee.org/document/9806927) (VSG algorithm loop, voltage loop, current loop with active damping), whose grid-following counterpart in the same paper is the basis for the averaged inverter above; the inner voltage/current control and LC filter modeling follow [Yazdani2010](https://ieeexplore.ieee.org/book/5237659).
 Like the grid-following inverter above it is a variable state-space nodal component stamped directly into the MNA system, but instead of a PLL that locks to the grid it carries its own virtual synchronous machine (VSG): the internal angle and voltage magnitude are states driven by active- and reactive-power balance, so the inverter imposes a voltage and can run islanded.

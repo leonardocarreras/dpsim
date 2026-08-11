@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+# SPDX-License-Identifier: MPL-2.0
+
 # A synchronous machine through a fault, compared across three model orders.
 # Documented at docs/hugo/content/en/docs/Tutorials/Python/a-machine/index.md
 exec(open(__file__.replace("06_a_machine.py", "_smib_powerflow.py")).read())

@@ -1,3 +1,6 @@
+.. SPDX-FileCopyrightText: 2020-2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+.. SPDX-License-Identifier: MPL-2.0
+
 .. dpsim documentation master file, created by
    sphinx-quickstart on Fri Sep 22 16:22:46 2017.
    You can adapt this file completely to your liking, but it should at least

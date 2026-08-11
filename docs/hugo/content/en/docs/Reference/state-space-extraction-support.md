@@ -6,6 +6,11 @@ description: >
   Components that contribute states to the extracted state-space model.
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 For how extraction works and how to enable it, see
 [state-space extraction]({{< ref "/docs/Developer Guide/Solvers/state-space-extraction.md" >}}).
 

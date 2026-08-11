@@ -8,6 +8,11 @@ description: >
   Extending the simulator with new component or control models.
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 This page walks through adding a component model, using a three phase dynamic phasor inductor as
 the example.
 

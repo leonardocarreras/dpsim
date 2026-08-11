@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+
+# SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+# SPDX-License-Identifier: MPL-2.0
+
 # Reports prose that reads like a hazard or a hard constraint but is not inside a callout.
 #
 #   python3 scripts/docs/check_docs_hazards.py            # list candidates

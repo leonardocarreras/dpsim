@@ -8,6 +8,11 @@ description: >
 weight: 11
 ---
 
+<!--
+SPDX-FileCopyrightText: 2022-2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 Here, we will show the implementation of a new simulation scenario defined in C++, which is using DPsim as a library.
 
 ## Directory Structure
