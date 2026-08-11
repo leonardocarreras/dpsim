@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# SPDX-FileCopyrightText: 2020-2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+# SPDX-License-Identifier: MPL-2.0
+
 CIM_VERSION=${CIM_VERSION:-CGMES_2.4.15_16FEB2016}
 VILLAS_VERSION=${VILLAS_VERSION:-5606793aaee2d1eeb663180d3e52718fa8bd5931}
 

@@ -8,6 +8,11 @@ description: >
 weight: 2
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 All builds start from a checkout of the repository. To build and read the code, cloning over
 HTTPS needs no account:
 

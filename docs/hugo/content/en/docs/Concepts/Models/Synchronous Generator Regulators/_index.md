@@ -7,6 +7,11 @@ description: >
 aliases: ["/docs/models/synchronous-generator-regulators/"]
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 In DPSim, synchronous generator control systems are solved separately from the electric network. The outputs of the electric network (active and reactive power, node voltages, branch currents and rotor speed of synchronous generators) at time $k- \Delta t$ are used as the input of the controllers to calculate their states at time $k$. Because of the relatively slow response of the controllers, the error in the network solution due to the time delay $\Delta t$ introduced by this approach is negligible.
 
 ## References

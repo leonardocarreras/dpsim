@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+# SPDX-License-Identifier: MPL-2.0
+
 # Exporting a value to another tool through the VILLASnode interface, using a file node.
 # Documented at docs/hugo/content/en/docs/Tutorials/Python/exchanging-data/index.md
 import json

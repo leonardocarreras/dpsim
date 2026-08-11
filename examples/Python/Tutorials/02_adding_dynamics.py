@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+# SPDX-License-Identifier: MPL-2.0
+
 # Adding dynamics: an RL branch, run at two time steps to show what the step buys.
 # Documented at docs/hugo/content/en/docs/Tutorials/Python/adding-dynamics/index.md
 import sys

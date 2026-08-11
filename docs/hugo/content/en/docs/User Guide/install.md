@@ -8,6 +8,11 @@ description: >
 weight: 1
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 DPsim is a Python module and C++ library for dynamic power system simulation.
 
 The quickest route to a result is the Python module: install it, then work through the

@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2021-2025 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+# SPDX-License-Identifier: MPL-2.0
+
 # This example demonstrates the export of values calculated by dpsim to a file using the VILLASnode interface
 
 import json

@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+# SPDX-License-Identifier: MPL-2.0
+
 # A two-bus network initialized from a powerflow.
 # Documented at docs/hugo/content/en/docs/Tutorials/Python/two-bus-network/index.md
 import dpsimpy

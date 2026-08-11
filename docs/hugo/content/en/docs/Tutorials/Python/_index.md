@@ -6,6 +6,11 @@ description: >
   The ladder, worked in Python.
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 Each tutorial starts from the one before and adds exactly one new thing. Work through them in order;
 each is a complete runnable script rather than a fragment.
 

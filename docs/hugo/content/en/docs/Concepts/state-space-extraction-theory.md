@@ -7,6 +7,11 @@ description: >
 weight: 6
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 A nodal simulation computes a trajectory: given a set of sources and initial conditions it
 produces the node voltages step by step. It does not, by itself, say anything about the system's
 modes, its damping, or how close it is to instability. Those questions are answered by the

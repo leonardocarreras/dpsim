@@ -7,6 +7,11 @@ description: >
   A line between two buses, and initializing the dynamic run from a powerflow.
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 The circuits so far started from nothing and settled. That is fine for a resistor and an inductor,
 and useless for a network: a real system is already running when you start looking at it, and the
 transient you care about is the one caused by an event, not by switching the whole grid on.

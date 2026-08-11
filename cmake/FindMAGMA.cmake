@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2021-2023 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+# SPDX-License-Identifier: MPL-2.0
+
 if(NOT MAGMA_FOUND)
 	find_path(MAGMA_INCLUDE_DIR
 		NAMES magma_v2.h magmasparse.h

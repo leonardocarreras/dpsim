@@ -6,6 +6,11 @@ description: >
   The attribute system, and how it decides the order everything runs in.
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 Attributes are the unit of state in DPsim, and they are not only a way to expose a value: the
 scheduler builds the execution order from the dependencies that components declare over them. The
 two subjects are one subject, which is why they sit together.

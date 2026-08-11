@@ -7,6 +7,11 @@ description: >
   Switching during a run, and why clearing a fault needs more care than applying one.
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 The network from [the previous tutorial]({{< ref "two-bus-network.md" >}}) starts in steady state,
 so anything that happens to it now is a response to the event rather than to startup. This tutorial
 applies a fault at the load bus, clears it, and looks at what the clearing does.

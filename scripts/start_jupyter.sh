@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2019-2024 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+# SPDX-License-Identifier: MPL-2.0
+
 # helper script to start jupyter notebook in dpsim-dev container
 # assumes dpsim and data-processing to be mounted in /dpsim-dev
 cd /dpsim-dev/dpsim/build

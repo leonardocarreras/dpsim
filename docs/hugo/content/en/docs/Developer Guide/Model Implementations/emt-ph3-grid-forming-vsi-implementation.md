@@ -7,6 +7,11 @@ description: >
 weight: 29
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 The equations and the linearization mathematics are derived under
 [EMT Ph3 grid-forming voltage source inverter]({{< ref "/docs/Concepts/Models/Power Electronics/emt-ph3-grid-forming-vsi.md" >}}).
 This page covers only their arrangement in code.

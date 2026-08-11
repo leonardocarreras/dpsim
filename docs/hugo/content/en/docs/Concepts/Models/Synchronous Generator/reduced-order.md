@@ -7,6 +7,11 @@ description: >
 weight: 1
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 The full dq0 machine keeps every rotor winding as a state. Reduced order models keep the rotor
 flux linkages that matter on the timescale of interest and represent the rest algebraically, which
 removes the fastest states and lets the machine be stepped at the same rate as the network.

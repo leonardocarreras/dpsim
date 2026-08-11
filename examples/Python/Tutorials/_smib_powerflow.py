@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+# SPDX-License-Identifier: MPL-2.0
+
 # Shared powerflow for the machine tutorial; imported by 06_a_machine.py.
 import dpsimpy, math
 import villas.dataprocessing.readtools as rt

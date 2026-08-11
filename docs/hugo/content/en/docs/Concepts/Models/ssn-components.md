@@ -7,6 +7,11 @@ description: >
 weight: 13
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 The [state-space nodal]({{< ref "/docs/Concepts/state-space-nodal.md" >}}) method solves a component
 simultaneously with the network instead of coupling it through a delayed injection. This page covers
 the other half: how a single component is written so that the method applies to it, and what the

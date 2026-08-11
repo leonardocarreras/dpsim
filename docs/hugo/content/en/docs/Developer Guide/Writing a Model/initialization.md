@@ -8,6 +8,11 @@ description: >
 weight: 7
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 Initialization is the phase between constructing the system topology and running the first timestep.
 Its job is to size the system matrices, derive initial state from power-flow results, register MNA tasks, and stamp static conductances.
 Two constraints drive its structure:

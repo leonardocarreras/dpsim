@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2023-2025 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+# SPDX-License-Identifier: MPL-2.0
+
 option(SPDLOG_BUILD_TESTING "Build spdlog tests" OFF)
 option(SPDLOG_BUILD_BENCH "Build spdlog benchmarks" OFF)
 option(SPDLOG_BUILD_EXAMPLES "Build spdlog examples" OFF)

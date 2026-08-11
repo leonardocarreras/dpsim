@@ -7,6 +7,11 @@ description: >
 weight: 20
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 The equations are derived under
 [reduced order machine models]({{< ref "/docs/Concepts/Models/Synchronous Generator/reduced-order.md" >}}).
 This page covers only their arrangement in code.

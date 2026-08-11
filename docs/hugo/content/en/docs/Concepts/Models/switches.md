@@ -7,6 +7,11 @@ description: >
 weight: 5
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 A switch in a nodal formulation is not an ideal open or short. Both would be singular: an ideal
 short shorts two node equations together, and an ideal open leaves a node with no path to ground.
 Switches are therefore represented by a finite resistance that takes one of two values.

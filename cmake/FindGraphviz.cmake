@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2019-2023 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+# SPDX-License-Identifier: MPL-2.0
+
 find_library(CGRAPH_LIBRARY
 	NAMES
 		cgraph

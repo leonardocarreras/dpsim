@@ -7,6 +7,11 @@ description: >
 weight: 14
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 Alongside the network components, a simulation contains blocks that carry no current and connect to
 no node. They compute a value from another value, and they exist because controllers and sources are
 built out of them.

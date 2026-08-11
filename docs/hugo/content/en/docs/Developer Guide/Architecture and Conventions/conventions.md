@@ -6,6 +6,11 @@ description: >
   Scaling of quantities and logging rules that code in DPsim has to follow.
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 Conventions that apply across the codebase. For the process of getting a change merged, see
 [contributing]({{< ref "/docs/Contributing" >}}).
 

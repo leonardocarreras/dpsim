@@ -7,6 +7,11 @@ description: >
   Running one circuit as waveforms and as envelopes, and comparing the two.
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 Every result so far has been an envelope, and the pages have said that an envelope is not a
 waveform without showing what the difference costs. This tutorial runs the same circuit both ways
 and puts the two on one axis.

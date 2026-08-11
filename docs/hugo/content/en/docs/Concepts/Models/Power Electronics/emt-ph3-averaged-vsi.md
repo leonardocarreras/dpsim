@@ -6,6 +6,11 @@ description: >
   Three-Phase Averaged Voltage Source Inverter with State-Space Nodal Interface
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 This model represents a grid-following averaged voltage source inverter in the EMT domain.
 Because its state-space form is recomputed as the operating point moves, it is solved simultaneously with the network rather than through a delayed injection.
 The model includes a PLL, filtered active/reactive power measurement, outer power control, inner current control, and an LC filter with coupling resistance to the grid node.

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2017-2022 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+// SPDX-FileCopyrightText: 2021-2025 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
 // SPDX-License-Identifier: MPL-2.0
 
 #include <iostream>

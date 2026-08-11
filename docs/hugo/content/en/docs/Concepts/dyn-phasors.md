@@ -7,6 +7,11 @@ description: >
 weight: 2
 ---
 
+<!--
+SPDX-FileCopyrightText: 2022-2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 In the power systems community, dynamic phasors were initially introduced for power electronics analysis [Sanders1991](https://ieeexplore.ieee.org/document/76811) as a more general approach than state-space averaging.
 They were used to construct efficient models for the dynamics of switching gate phenomena with a high level of detail as shown in [Mattavelli1999](https://ieeexplore.ieee.org/abstract/document/744524).
 A few years later, dynamic phasors were also employed for power system simulation as described in [Demiray2008](https://www.research-collection.ethz.ch/handle/20.500.11850/123490).

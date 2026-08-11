@@ -7,6 +7,11 @@ description: >
   Tuning the host and writing a model that can hold a deadline.
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 Why you would run in real time, and how to start such a run, is under
 [real-time simulation]({{< ref "/docs/User Guide/real-time.md" >}}). This page is what has to be
 true of the host and of the models for a deadline to be met.

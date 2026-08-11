@@ -1,5 +1,5 @@
 /* Author: Christoph Wirtz <christoph.wirtz@fgh-ma.de>
- * SPDX-FileCopyrightText: 2026 FGH e.V.
+ * SPDX-FileCopyrightText: 2019-2026 FGH e.V.
  * SPDX-License-Identifier: MPL-2.0
  */
 

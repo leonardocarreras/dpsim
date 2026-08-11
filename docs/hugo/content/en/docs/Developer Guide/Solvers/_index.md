@@ -6,6 +6,11 @@ description: >
   The solvers below the nodal one, the linear backends, and state-space extraction.
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 The [MNA solver]({{< ref "/docs/Developer Guide/Solvers/mna-solver.md" >}}) is the default and the one almost every simulation
 uses; a component's side of it is under
 [interfacing with the MNA solver]({{< ref "/docs/Developer Guide/Writing a Model/mnainterface.md" >}}).

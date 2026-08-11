@@ -1,4 +1,8 @@
 #!/bin/bash
+
+# SPDX-FileCopyrightText: 2019-2024 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+# SPDX-License-Identifier: MPL-2.0
+
 for (( j = 0; j <= 12; j = j+2 ))
 do
     for (( k = 1; k <= 10; k++ ))

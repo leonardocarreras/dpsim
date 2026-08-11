@@ -8,6 +8,11 @@ description: >
   The modules DPsim is built from and the class hierarchy underneath them.
 ---
 
+<!--
+SPDX-FileCopyrightText: 2022-2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 ## Modules and Dependencies
 
 The figure below shows the main components of the DPsim library and their dependencies on other software projects.

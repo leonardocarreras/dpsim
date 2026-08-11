@@ -9,6 +9,11 @@ description: >
   A ladder of worked simulations, each adding one idea to the one before.
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 Worked simulations in order of difficulty, starting from something trivial. Each one adds exactly
 one new idea to the one before it, and each is a complete script you can run rather than a fragment
 to assemble.

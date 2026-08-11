@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+
+# SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+# SPDX-License-Identifier: MPL-2.0
+
 # Unwraps documentation prose so each paragraph is one long line, and the sources are uniform.
 #
 #   python3 scripts/docs/reflow_docs.py --check   # list files that would change

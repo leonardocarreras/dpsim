@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2017-2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+# SPDX-License-Identifier: MPL-2.0
+
 FROM fedora:42 AS base
 
 ARG CIM_VERSION=CGMES_2.4.15_16FEB2016

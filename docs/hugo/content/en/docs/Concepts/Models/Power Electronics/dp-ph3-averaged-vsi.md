@@ -6,6 +6,11 @@ description: >
   Three-Phase Averaged Voltage Source Inverter with State-Space Nodal Interface (Dynamic Phasor)
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 This model extends the single-phase grid-following averaged inverter to the three-phase dynamic-phasor (DP) domain.
 Each phase of the LC filter is represented by an independent complex envelope, $V_{c,a/b/c}$ and $I_{f,a/b/c}$, in contrast to the single positive-sequence envelope of the single-phase model, whereas the controller retains a single positive-sequence $dq$ frame shared by the PLL, the power filter, and the outer and inner control loops.
 As in the single-phase case, the control states are baseband quantities and remain real-valued; only the six per-phase filter envelopes are carrier-band quantities, and each carries the $-j\omega_n$ frequency shift introduced in [State-Space Nodal]({{< ref "state-space-nodal.md" >}}).

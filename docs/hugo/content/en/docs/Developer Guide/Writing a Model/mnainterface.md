@@ -8,6 +8,11 @@ description: >
 weight: 8
 ---
 
+<!--
+SPDX-FileCopyrightText: 2022-2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 The various solver classes based on `MNASolver` are used to perform [Nodal Analysis]({{< ref "/docs/Concepts/nodal-analysis.md" >}}) during a DPsim simulation. For components to be able to influence the input variables of the MNA, they have to implement certain methods defined in the `MNAInterface` interface class. While it is possible to individually implement `MNAInterface` for every
 component, the behavior of many components can be unified in a common base class. This base class is called `MNASimPowerComp<T>`.
 Currently, it is the only class which directly implements `MNAInterface` and in turn all MNA components inherit from this class.

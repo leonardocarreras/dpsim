@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2022-2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+# SPDX-License-Identifier: MPL-2.0
+
 name: Sonar Cloud Build
 
 # Untrusted stage: runs in the PR/fork context with NO secrets and a read-only

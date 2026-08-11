@@ -7,6 +7,11 @@ description: >
   When a model variable should be an attribute and when a plain member is enough.
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 This page gives practical rules for deciding when a model variable should be a DPsim attribute. For details on the attribute mechanism itself, see [attributes]({{< ref "/docs/Developer Guide/Attributes and Scheduling/Attributes/index.md" >}}).
 
 ## Rule of Thumb

@@ -6,6 +6,11 @@ description: >
   Giving a component pre-step and post-step tasks and declaring their dependencies.
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 How to attach tasks to a component. For how the scheduler consumes them, see
 [scheduling]({{< ref "/docs/Developer Guide/Attributes and Scheduling/Scheduling/index.md" >}}).
 

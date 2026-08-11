@@ -7,6 +7,11 @@ description: >
   Build a network in Python, run it, and read the results back.
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 This page goes from nothing to a plotted result. It assumes DPsim is installed and importable; if
 it is not, start with [install]({{< ref "install.md" >}}) or [build]({{< ref "build.md" >}}).
 

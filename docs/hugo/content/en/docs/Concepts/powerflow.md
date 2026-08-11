@@ -7,6 +7,11 @@ description: >
 weight: 3
 ---
 
+<!--
+SPDX-FileCopyrightText: 2022-2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 The power flow problem is about the calculation of voltage magnitudes and angles for one set of buses.
 The solution is obtained from a given set of voltage magnitudes and power levels for a specific model of the network configuration.
 The power flow solution exhibits the voltages and angles at all buses and real and reactive flows can be deduced from the same.

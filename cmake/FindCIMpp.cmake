@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2020-2025 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+# SPDX-License-Identifier: MPL-2.0
+
 cmake_minimum_required(VERSION 3.12)
 
 set(CIM_VERSION "${CIM_VERSION}" CACHE STRING "CIM version (e.g. CGMES_2.4.15_16FEB2016)")

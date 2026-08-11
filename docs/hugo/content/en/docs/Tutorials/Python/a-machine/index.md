@@ -7,6 +7,11 @@ description: >
   A synchronous generator, initializing it correctly, and what the model order changes.
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 Everything so far has been passive. A synchronous machine brings two things that no previous
 tutorial needed: it has mechanical state, so it can swing, and it has to be told the operating point
 it starts from rather than deducing it.

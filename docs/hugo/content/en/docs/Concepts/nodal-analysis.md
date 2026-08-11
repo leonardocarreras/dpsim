@@ -7,6 +7,11 @@ description: >
 weight: 1
 ---
 
+<!--
+SPDX-FileCopyrightText: 2022-2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 A circuit with $b$ branches has $2b$ unknowns since there are $b$ voltages and $b$ currents.
 Hence, $2b$ linear independent equations are required to solve the circuit.
 If the circuit has $n$ nodes and $b$ branches, it has

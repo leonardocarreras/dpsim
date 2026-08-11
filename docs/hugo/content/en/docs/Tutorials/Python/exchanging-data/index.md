@@ -7,6 +7,11 @@ description: >
   Handing a value out of a running simulation, and where the boundary lies.
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 Everything so far has ended with a CSV read after the run. This tutorial hands a value out **while**
 the simulation runs, which is what co-simulation, hardware in the loop and any live coupling are
 built on.

@@ -1,3 +1,6 @@
+% SPDX-FileCopyrightText: 2018-2024 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+% SPDX-License-Identifier: MPL-2.0
+
 % Calculate root mean squared error for the current in the interval 0.1 and
 % 0.2s and plot error in function of time step
 

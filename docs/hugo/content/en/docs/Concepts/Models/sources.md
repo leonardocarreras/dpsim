@@ -7,6 +7,11 @@ description: >
 weight: 7
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 A source imposes a quantity on the network. Which quantity it imposes, and whether it does so
 exactly, determines how it enters the system of equations and what it costs.
 

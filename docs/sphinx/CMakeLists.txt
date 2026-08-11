@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2020-2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+# SPDX-License-Identifier: MPL-2.0
+
 if(WITH_PYBIND)
 	find_package(Sphinx)
 

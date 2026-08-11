@@ -6,6 +6,11 @@ description: >
   Mathematical description of the models implemented in DPsim.
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 Each page in this section derives one component family: what it represents, the equations that
 describe it, and what those equations assume. None of them names a class or a file. How a model is
 arranged in code is in the [Developer Guide]({{< ref "/docs/Developer Guide" >}}), and which domains

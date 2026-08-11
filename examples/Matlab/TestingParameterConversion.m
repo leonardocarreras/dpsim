@@ -1,3 +1,6 @@
+% SPDX-FileCopyrightText: 2017-2022 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+% SPDX-License-Identifier: MPL-2.0
+
 % [ Td0_t, Td0_s, Td_t, Td_s, Ld_t, Ld_s, Tq0_t, Tq0_s, ...
 %     Lq_t, Lq_s, Ld, Lq  ] = ...
 %     FundamentalToStandard(0.15, 1.66, 0.165, 0.1713, 0.0284, 0.0006, 1.61, 0.7252, 0.125, 0.0062, 0.0237)

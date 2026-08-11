@@ -7,6 +7,11 @@ description: >
 weight: 3
 ---
 
+<!--
+SPDX-FileCopyrightText: 2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 The methods are derived under
 [alternative solution methods]({{< ref "/docs/Concepts/alternative-solvers.md" >}}). This page
 covers the code and the configuration.

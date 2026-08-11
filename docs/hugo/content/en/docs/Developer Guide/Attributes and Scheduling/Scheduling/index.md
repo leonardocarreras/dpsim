@@ -8,6 +8,11 @@ description: >
   How DPsim builds, orders, and executes the task graph each timestep.
 ---
 
+<!--
+SPDX-FileCopyrightText: 2022-2026 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+SPDX-License-Identifier: MPL-2.0
+-->
+
 Within each simulation timestep, DPsim executes a set of **tasks**: discrete units of computation contributed by components, the solver, interfaces, and loggers.
 Before the first timestep the scheduler collects all tasks, resolves their data dependencies into a directed acyclic graph, and produces an ordered schedule.
 That schedule is then replayed on every timestep with no further graph analysis.

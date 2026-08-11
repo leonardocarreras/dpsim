@@ -1,2 +1,5 @@
+# SPDX-FileCopyrightText: 2018-2024 Institute for Automation of Complex Power Systems, EONERC, RWTH Aachen University
+# SPDX-License-Identifier: MPL-2.0
+
 RT_DP_ResVS_RL1:
   cmd: build/dpsim/examples/cxx/RT_DP_VS_RL2
