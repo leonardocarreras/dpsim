@@ -32,6 +32,25 @@ jobs:
           python-version: '3.x'
       - uses: pre-commit/action@v3.0.1
 
+  reuse:
+    name: Every file states its license
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.ref }}
+          allow-unsafe-pr-checkout: true
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.x'
+
+      # The pre-commit hook only sees the files a commit touches, this sees the whole tree.
+      - name: Run reuse lint
+        run: |
+          pip install reuse==6.2.0
+          reuse lint
+
   conventional-commits:
     name: Commit messages are conventional commits
     if: github.event_name == 'pull_request' || github.event_name == 'pull_request_target'
