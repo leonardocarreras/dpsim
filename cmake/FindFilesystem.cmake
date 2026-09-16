@@ -3,12 +3,17 @@
 include(CheckCXXSourceCompiles)
 include(FindPackageHandleStandardArgs)
 
+# The test program exercises functions that require the runtime library to be
+# linked in (a mere `#include <filesystem>` would compile fine even when the
+# library is missing), so it lets us detect whether an extra -lstdc++fs /
+# -lc++fs is actually required, or whether it's already part of libc / libc++
+# (e.g. on macOS with Clang/libc++, or GCC >= 9).
 set(_FILESYSTEM_TEST_SOURCE "
 	#include <filesystem>
 
 	int main() {
 		std::filesystem::path p{\".\"};
-		return p.empty();
+		return std::filesystem::exists(p) ? 0 : 1;
 	}
 ")
 
